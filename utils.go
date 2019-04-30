@@ -1,4 +1,4 @@
-package internal
+package http_ece
 
 import (
 	"crypto/elliptic"
@@ -9,30 +9,30 @@ import (
 	"math/big"
 )
 
-var Debug = debugT(DEBUG)
+var debug = debugT(false)
 
 type debugT bool
 
-func (d debugT) DumpBinary(base string, data []byte) {
+func (d debugT) dumpBinary(base string, data []byte) {
 	if d {
 		log.Printf("%12s [%4d]: %s\n", base, len(data), base64.StdEncoding.EncodeToString(data))
 	}
 }
 
-func Uint16ToBytes(i int) []byte {
+func uint16ToBytes(i int) []byte {
 	x := make([]byte, 2)
 	binary.BigEndian.PutUint16(x, uint16(i))
 	return x
 }
 
-func Uint32ToBytes(i int) []byte {
+func uint32ToBytes(i int) []byte {
 	x := make([]byte, 4)
 	binary.BigEndian.PutUint32(x, uint32(i))
 	return x
 }
 
-func GenerateNonce(baseNonce []byte, counter int) []byte {
-	x := make([]byte, NonceLen)
+func generateNonce(baseNonce []byte, counter int) []byte {
+	x := make([]byte, nonceLen)
 	binary.BigEndian.PutUint32(x[8:], uint32(counter))
 	xor(x, baseNonce, x)
 	return x
@@ -57,7 +57,7 @@ func xor(dst []byte, a []byte, b []byte) {
 	dst[11] = a[11] ^ b[11]
 }
 
-func ResultsJoin(s [][]byte) []byte {
+func resultsJoin(s [][]byte) []byte {
 	if len(s) == 1 {
 		return s[0]
 	}
@@ -75,14 +75,14 @@ func ResultsJoin(s [][]byte) []byte {
 	return b
 }
 
-func ComputeSecret(curve elliptic.Curve, private []byte, public []byte) []byte {
+func computeSecret(curve elliptic.Curve, private []byte, public []byte) []byte {
 	x1, y1 := elliptic.Unmarshal(curve, public)
 
 	x2, _ := curve.ScalarMult(x1, y1, private)
 	return x2.Bytes()
 }
 
-func RandomKey(curve elliptic.Curve) (private []byte, public []byte, err error) {
+func randomKey(curve elliptic.Curve) (private []byte, public []byte, err error) {
 	var x, y *big.Int
 	private, x, y, err = elliptic.GenerateKey(curve, rand.Reader)
 	if err != nil {
@@ -93,7 +93,7 @@ func RandomKey(curve elliptic.Curve) (private []byte, public []byte, err error) 
 	return
 }
 
-func RandomSalt() ([]byte, error) {
+func randomSalt() ([]byte, error) {
 	salt := make([]byte, 16)
 	_, err := rand.Read(salt)
 	if err != nil {

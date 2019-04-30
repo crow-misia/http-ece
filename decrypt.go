@@ -1,11 +1,9 @@
-package decrypt
+package http_ece
 
 import (
 	"crypto/cipher"
 	"crypto/elliptic"
 	"encoding/binary"
-	"github.com/crow-misia/http-ece"
-	. "github.com/crow-misia/http-ece/internal"
 	"log"
 )
 
@@ -13,40 +11,42 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 	var err error
 
 	// Options
-	opt := options{
-		curve:    Curve,
-		encoding: http_ece.AES128GCM,
-		keyLabel: CurveAlgorithm,
+	opt := &options{
+		mode:     DECRYPT,
+		curve:    elliptic.P256(),
+		encoding: AES128GCM,
 		rs:       4096,
+		keyLabel: curveAlgorithm,
 	}
 	for _, o := range opts {
-		o(&opt)
+		o(opt)
 	}
+
+	curve := opt.curve
 
 	// Create / set sender private key.
 	if opt.private == nil {
-		opt.private, opt.public, err = RandomKey(opt.curve)
+		opt.private, opt.public, err = randomKey(opt.curve)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		x, y := Curve.ScalarBaseMult(opt.private)
-		opt.public = elliptic.Marshal(Curve, x, y)
+		x, y := curve.ScalarBaseMult(opt.private)
+		opt.public = elliptic.Marshal(curve, x, y)
 	}
 
-	content = readHeader(&opt, content)
+	content = readHeader(opt, content)
 
-	Debug.DumpBinary("sender pub", opt.dh)
-	Debug.DumpBinary("receiver pri", opt.private)
+	debug.dumpBinary("sender pub", opt.dh)
+	debug.dumpBinary("receiver pri", opt.private)
 
 	// Derive key and nonce.
-	config := opt.toKeyConfig()
-	key, baseNonce, err := DeriveKeyAndNonce(config)
+	key, baseNonce, err := deriveKeyAndNonce(opt)
 	if err != nil {
 		return nil, err
 	}
 
-	gcm, err := CreateCipher(key)
+	gcm, err := createCipher(key)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 	start := 0
 	counter := 0
 	contentLen := len(content)
-	if opt.encoding != http_ece.AES128GCM {
+	if opt.encoding != AES128GCM {
 		chunkSize += gcm.Overhead()
 	}
 
@@ -68,25 +68,25 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 			end = contentLen
 		}
 		// Generate nonce.
-		nonce := GenerateNonce(baseNonce, counter)
-		Debug.DumpBinary("nonce", nonce)
-		r, err := decryptRecord(&opt, gcm, nonce, content[start:end])
+		nonce := generateNonce(baseNonce, counter)
+		debug.dumpBinary("nonce", nonce)
+		r, err := decryptRecord(opt, gcm, nonce, content[start:end])
 		if err != nil {
 			return nil, err
 		}
 		results = append(results, r)
-		Debug.DumpBinary("result", r)
+		debug.dumpBinary("result", r)
 		start = end
 		counter++
 	}
-	return ResultsJoin(results), nil
+	return resultsJoin(results), nil
 }
 
 func readHeader(opt *options, content []byte) []byte {
-	if opt.encoding == http_ece.AES128GCM {
+	if opt.encoding == AES128GCM {
 		idLen := int(content[20])
-		opt.salt = content[0:KeyLen]
-		opt.rs = int(binary.BigEndian.Uint32(content[KeyLen : KeyLen+4]))
+		opt.salt = content[0:keyLen]
+		opt.rs = int(binary.BigEndian.Uint32(content[keyLen : keyLen+4]))
 		opt.keyId = content[21 : 21+idLen]
 		return content[21+idLen:]
 	}
@@ -101,7 +101,7 @@ func decryptRecord(opt *options, gcm cipher.AEAD, nonce []byte, content []byte) 
 	}
 
 	switch opt.encoding {
-	case http_ece.AESGCM:
+	case AESGCM:
 		return result[opt.encoding.Padding():], nil
 	default:
 		return result[:len(result)-opt.encoding.Padding()], nil

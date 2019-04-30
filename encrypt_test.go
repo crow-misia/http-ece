@@ -1,8 +1,7 @@
-package encrypt
+package http_ece
 
 import (
 	"encoding/base64"
-	"github.com/crow-misia/http-ece"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
@@ -12,14 +11,14 @@ func TestEncryptWithAESGCM(t *testing.T) {
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
-	publicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
+	peersPublicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
 	plaintext := []byte("hello world")
 	content, err := Encrypt(plaintext,
-		WithEncoding(http_ece.AESGCM),
+		WithEncoding(AESGCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
 		WithPrivate(privateKey),
-		WithPeersPublic(publicKey))
+		WithDh(peersPublicKey))
 
 	e := base64.StdEncoding.EncodeToString
 
@@ -32,14 +31,14 @@ func TestEncryptWithAESGCM4093Byte(t *testing.T) {
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
-	publicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
+	peersPublicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
 	plaintext := []byte(strings.Repeat("a", 4093))
 	content, err := Encrypt(plaintext,
-		WithEncoding(http_ece.AESGCM),
+		WithEncoding(AESGCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
 		WithPrivate(privateKey),
-		WithPeersPublic(publicKey))
+		WithDh(peersPublicKey))
 
 	e := base64.StdEncoding.EncodeToString
 
@@ -52,14 +51,14 @@ func TestEncryptWithAESGCM4094Byte(t *testing.T) {
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
-	publicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
+	peersPublicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
 	plaintext := []byte(strings.Repeat("a", 4094))
 	content, err := Encrypt(plaintext,
-		WithEncoding(http_ece.AESGCM),
+		WithEncoding(AESGCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
 		WithPrivate(privateKey),
-		WithPeersPublic(publicKey))
+		WithDh(peersPublicKey))
 
 	e := base64.StdEncoding.EncodeToString
 
@@ -72,14 +71,14 @@ func TestEncryptWithAESGCM4095Byte(t *testing.T) {
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
-	publicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
+	peersPublicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
 	plaintext := []byte(strings.Repeat("a", 4095))
 	content, err := Encrypt(plaintext,
-		WithEncoding(http_ece.AESGCM),
+		WithEncoding(AESGCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
 		WithPrivate(privateKey),
-		WithPeersPublic(publicKey))
+		WithDh(peersPublicKey))
 
 	e := base64.StdEncoding.EncodeToString
 
@@ -92,14 +91,14 @@ func TestEncryptWithAES128GCM(t *testing.T) {
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
-	publicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
+	peersPublicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
 	plaintext := []byte("hello world")
 	content, err := Encrypt(plaintext,
-		WithEncoding(http_ece.AES128GCM),
+		WithEncoding(AES128GCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
 		WithPrivate(privateKey),
-		WithPeersPublic(publicKey))
+		WithDh(peersPublicKey))
 
 	e := base64.StdEncoding.EncodeToString
 
@@ -112,14 +111,14 @@ func TestEncryptWithAES128GCM4079Byte(t *testing.T) {
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
-	publicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
+	peersPublicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
 	plaintext := []byte(strings.Repeat("a", 4079))
 	content, err := Encrypt(plaintext,
-		WithEncoding(http_ece.AES128GCM),
+		WithEncoding(AES128GCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
 		WithPrivate(privateKey),
-		WithPeersPublic(publicKey))
+		WithDh(peersPublicKey))
 
 	e := base64.StdEncoding.EncodeToString
 
@@ -132,14 +131,14 @@ func TestEncryptWithAES128GCM4080Byte(t *testing.T) {
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
-	publicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
+	peersPublicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
 	plaintext := []byte(strings.Repeat("a", 4080))
 	content, err := Encrypt(plaintext,
-		WithEncoding(http_ece.AES128GCM),
+		WithEncoding(AES128GCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
 		WithPrivate(privateKey),
-		WithPeersPublic(publicKey))
+		WithDh(peersPublicKey))
 
 	e := base64.StdEncoding.EncodeToString
 
@@ -152,14 +151,14 @@ func TestEncryptWithAES128GCM4081Byte(t *testing.T) {
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
-	publicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
+	peersPublicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
 	plaintext := []byte(strings.Repeat("a", 4081))
 	content, err := Encrypt(plaintext,
-		WithEncoding(http_ece.AES128GCM),
+		WithEncoding(AES128GCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
 		WithPrivate(privateKey),
-		WithPeersPublic(publicKey))
+		WithDh(peersPublicKey))
 
 	e := base64.StdEncoding.EncodeToString
 
@@ -172,7 +171,7 @@ func BenchmarkEncrypt(b *testing.B) {
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
-	publicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
+	peersPublicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
 	plaintext := []byte(strings.Repeat("a", 4079))
 
 	b.ResetTimer()
@@ -181,11 +180,11 @@ func BenchmarkEncrypt(b *testing.B) {
 	var err error
 	for i := 0; i < b.N; i++ {
 		content, err = Encrypt(plaintext,
-			WithEncoding(http_ece.AES128GCM),
+			WithEncoding(AES128GCM),
 			WithSalt(salt),
 			WithAuthSecret(authSecret),
 			WithPrivate(privateKey),
-			WithPeersPublic(publicKey))
+			WithDh(peersPublicKey))
 	}
 	b.StopTimer()
 
@@ -194,12 +193,4 @@ func BenchmarkEncrypt(b *testing.B) {
 	if assert.Nil(b, err) {
 		assert.Equal(b, "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", e(content))
 	}
-}
-
-func d(text string) []byte {
-	b, err := base64.StdEncoding.DecodeString(text)
-	if err != nil {
-		panic(err)
-	}
-	return b
 }
