@@ -11,20 +11,10 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 	var err error
 
 	// Options
-	opt := &options{
-		mode:     DECRYPT,
-		curve:    elliptic.P256(),
-		encoding: AES128GCM,
-		rs:       4096,
-		keyLabel: curveAlgorithm,
-	}
-	for _, o := range opts {
-		o(opt)
-	}
-
+	opt := parseOptions(DECRYPT, opts)
 	curve := opt.curve
 
-	// Create / set sender private key.
+	// Create or Set receiver private key.
 	if opt.private == nil {
 		opt.private, opt.public, err = randomKey(opt.curve)
 		if err != nil {

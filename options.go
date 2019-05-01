@@ -50,6 +50,12 @@ func WithAuthSecret(v []byte) Option {
 	}
 }
 
+func WithRecordSize(v uint32) Option {
+	return func(opts *options) {
+		opts.rs = int(v)
+	}
+}
+
 func WithKeyLabel(v []byte) Option {
 	return func(opts *options) {
 		opts.keyLabel = v

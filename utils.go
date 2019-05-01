@@ -19,6 +19,20 @@ func (d debugT) dumpBinary(base string, data []byte) {
 	}
 }
 
+func parseOptions(mode mode, opts []Option) *options {
+	opt := &options{
+		mode:     mode,
+		curve:    elliptic.P256(),
+		encoding: AES128GCM,
+		rs:       4096,
+		keyLabel: curveAlgorithm,
+	}
+	for _, o := range opts {
+		o(opt)
+	}
+	return opt
+}
+
 func uint16ToBytes(i int) []byte {
 	x := make([]byte, 2)
 	binary.BigEndian.PutUint16(x, uint16(i))

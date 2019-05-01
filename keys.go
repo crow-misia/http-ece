@@ -8,18 +8,19 @@ import (
 	"golang.org/x/crypto/hkdf"
 )
 
-func deriveKeyAndNonce(opt *options) (key []byte, nonce []byte, err error) {
-	var keyInfo []byte
-	var nonceInfo []byte
-	var secret []byte
-	var context []byte
+type key []byte
+type nonce []byte
+
+func deriveKeyAndNonce(opt *options) (key, nonce, error) {
+	var keyInfo, nonceInfo, secret, context []byte
+	var err error
 
 	switch opt.encoding {
 	case AESGCM:
 		// old
 		secret, context, err = extractSecretAndContext(opt)
 		if err != nil {
-			return
+			return nil, nil, err
 		}
 		keyInfo = buildInfo(aesgcmInfo, context)
 		nonceInfo = buildInfo(nonceBaseInfo, context)
@@ -28,14 +29,13 @@ func deriveKeyAndNonce(opt *options) (key []byte, nonce []byte, err error) {
 		// latest
 		secret, err = extractSecret(opt)
 		if err != nil {
-			return
+			return nil, nil, err
 		}
 		keyInfo = buildInfo(aes128gcmInfo, nil)
 		nonceInfo = buildInfo(nonceBaseInfo, nil)
 		break
 	default:
-		err = errors.New(fmt.Sprintf("must include a Salt parameter for %s", opt.encoding.String()))
-		return
+		return nil, nil, errors.New(fmt.Sprintf("must include a Salt parameter for %s", opt.encoding.String()))
 	}
 
 	debug.dumpBinary("info aesgcm", keyInfo)
@@ -49,26 +49,26 @@ func deriveKeyAndNonce(opt *options) (key []byte, nonce []byte, err error) {
 	debug.dumpBinary("hkdf prk", prk)
 	debug.dumpBinary("hkdf info", keyInfo)
 
-	key = make([]byte, keyLen)
+	key := make([]byte, keyLen)
 	_, err = hkdf.Expand(hashAlgorithm, prk, keyInfo).Read(key)
 	if err != nil {
-		return
+		return nil, nil, err
 	}
 
 	debug.dumpBinary("key", key)
 	debug.dumpBinary("hkdf prk", prk)
 	debug.dumpBinary("hkdf info", nonceInfo)
 
-	nonce = make([]byte, nonceLen)
+	nonce := make([]byte, nonceLen)
 	_, err = hkdf.Expand(hashAlgorithm, prk, nonceInfo).Read(nonce)
 	if err != nil {
-		return
+		return nil, nil, err
 	}
 	debug.dumpBinary("base nonce", nonce)
-	return
+	return key, nonce, err
 }
 
-func createCipher(key []byte) (cipher.AEAD, error) {
+func createCipher(key key) (cipher.AEAD, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -81,10 +81,9 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 	if optKeyLen > 0 {
 		secret = opt.key
 		if optKeyLen != keyLen {
-			err = errors.New(fmt.Sprintf("An explicit Key must be %d bytes", keyLen))
-			return
+			return nil, nil, errors.New(fmt.Sprintf("An explicit Key must be %d bytes", keyLen))
 		}
-		context = make([]byte, 0)
+		context = nil
 	} else if opt.private != nil {
 		debug.dumpBinary("receiver pub", opt.public)
 
@@ -92,7 +91,7 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 		context = newContext(opt)
 	} else if opt.keyId != nil {
 		secret = opt.keyMap(opt.keyId)
-		context = make([]byte, 0)
+		context = nil
 	}
 
 	if secret == nil {
@@ -103,7 +102,7 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 	debug.dumpBinary("context", context)
 
 	if opt.authSecret == nil {
-		return
+		return secret, context, nil
 	}
 
 	debug.dumpBinary("hkdf secret", secret)
@@ -113,26 +112,25 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 	authSecret := make([]byte, secretLen)
 	_, err = hkdf.New(hashAlgorithm, secret, opt.authSecret, authInfo).Read(authSecret)
 	if err != nil {
-		return
+		return nil, nil, err
 	}
 	debug.dumpBinary("authsecret", authSecret)
 	return authSecret, context, nil
 }
 
-func extractSecret(opt *options) (secret []byte, err error) {
+func extractSecret(opt *options) ([]byte, error) {
 	optKeyLen := len(opt.key)
 	if optKeyLen > 0 {
-		secret = opt.key
 		if optKeyLen != keyLen {
-			err = errors.New(fmt.Sprintf("An explicit Key must be %d bytes", keyLen))
+			return nil, errors.New(fmt.Sprintf("An explicit Key must be %d bytes", keyLen))
 		}
-		return
+		return opt.key, nil
 	}
 	if opt.authSecret == nil {
 		return nil, errors.New("no authentication secret for webpush")
 	}
 
-	secret = computeSecret(opt.curve, opt.private, opt.dh)
+	secret := computeSecret(opt.curve, opt.private, opt.dh)
 	sp, rp := getKeys(opt)
 	authInfo := append(append(webPushInfo, rp...), sp...)
 
@@ -141,9 +139,9 @@ func extractSecret(opt *options) (secret []byte, err error) {
 	debug.dumpBinary("hkdf info", authInfo)
 
 	newSecret := make([]byte, secretLen)
-	_, err = hkdf.New(hashAlgorithm, secret, opt.authSecret, authInfo).Read(newSecret)
+	_, err := hkdf.New(hashAlgorithm, secret, opt.authSecret, authInfo).Read(newSecret)
 	if err != nil {
-		return
+		return nil, err
 	}
 	return newSecret, nil
 }
@@ -160,8 +158,6 @@ func buildInfo(base []byte, context []byte) []byte {
 }
 
 func newContext(opt *options) []byte {
-	var ctx []byte
-
 	if opt.encoding == AESGCM {
 		// The context format is:
 		// KeyLabel || 0x00 ||
@@ -177,27 +173,21 @@ func newContext(opt *options) []byte {
 		splen := len(sp)
 		splenbuf := uint16ToBytes(splen)
 
-		ctx = make([]byte, 0, keyLabelLen+1+2+rplen+2+splen)
-		ctx = append(ctx, opt.keyLabel...)
-		ctx = append(ctx, 0)
-		ctx = append(ctx, rplenbuf...)
-		ctx = append(ctx, rp...)
-		ctx = append(ctx, splenbuf...)
-		ctx = append(ctx, sp...)
-	} else {
-		ctx = make([]byte, 0)
+		ctx := make([]byte, keyLabelLen+1+2+rplen+2+splen)
+		copy(ctx, opt.keyLabel)
+		ctx[keyLabelLen] = 0x00
+		copy(ctx[keyLabelLen+1:], rplenbuf)
+		copy(ctx[keyLabelLen+3:], rp)
+		copy(ctx[keyLabelLen+3+rplen:], splenbuf)
+		copy(ctx[keyLabelLen+3+rplen+2:], sp)
+		return ctx
 	}
-
-	return ctx
+	return nil
 }
 
 func getKeys(opt *options) (sp []byte, rp []byte) {
 	if opt.mode == DECRYPT {
-		rp = opt.public
-		sp = opt.dh
-	} else {
-		rp = opt.dh
-		sp = opt.public
+		return opt.dh, opt.public
 	}
-	return
+	return opt.public, opt.dh
 }

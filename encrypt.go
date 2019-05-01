@@ -10,20 +10,10 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 	var err error
 
 	// Options
-	opt := &options{
-		mode:     ENCRYPT,
-		curve:    elliptic.P256(),
-		encoding: AES128GCM,
-		rs:       4096,
-		keyLabel: curveAlgorithm,
-	}
-	for _, o := range opts {
-		o(opt)
-	}
-
+	opt := parseOptions(ENCRYPT, opts)
 	curve := opt.curve
 
-	// Create / set sender private key.
+	// Create or Set sender private key.
 	if opt.private == nil {
 		opt.private, opt.public, err = randomKey(curve)
 		if err != nil {
@@ -33,10 +23,11 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 		x, y := curve.ScalarBaseMult(opt.private)
 		opt.public = elliptic.Marshal(curve, x, y)
 	}
+
 	debug.dumpBinary("sender pub", opt.public)
 	debug.dumpBinary("sender pri", opt.private)
 
-	// Generate Salt
+	// Generate salt
 	if len(opt.salt) == 0 {
 		opt.salt, err = randomSalt()
 		if err != nil {
@@ -110,18 +101,19 @@ func encryptRecord(opt *options, gcm cipher.AEAD, nonce []byte, plaintext []byte
 }
 
 func appendPad(plaintext []byte, encoding ContentEncoding, last bool) []byte {
-	result := make([]byte, 0, len(plaintext)+encoding.Padding())
+	plaintextLen := len(plaintext)
+	result := make([]byte, plaintextLen+encoding.Padding())
 
 	switch encoding {
 	case AESGCM:
-		result = append(result, 0x00, 0x00)
-		result = append(result, plaintext...)
+		copy(result, []byte{0x00, 0x00})
+		copy(result[2:], plaintext)
 	default:
-		result = append(result, plaintext...)
+		copy(result, plaintext)
 		if last {
-			result = append(result, 0x02)
+			result[plaintextLen] = 0x02
 		} else {
-			result = append(result, 0x01)
+			result[plaintextLen] = 0x01
 		}
 	}
 	return result
@@ -135,11 +127,12 @@ func writeHeader(opt *options, results [][]byte) ([][]byte, error) {
 			return nil, errors.New("keyId is too large")
 		}
 
-		buffer := make([]byte, 0, len(opt.salt)+4+1+keyIdLen)
-		buffer = append(buffer, opt.salt...)
-		buffer = append(buffer, uint32ToBytes(opt.rs)...)
-		buffer = append(buffer, uint8(keyIdLen))
-		buffer = append(buffer, opt.keyId...)
+		saltLen := len(opt.salt)
+		buffer := make([]byte, saltLen+4+1+keyIdLen)
+		copy(buffer, opt.salt)
+		copy(buffer[saltLen:], uint32ToBytes(opt.rs))
+		buffer[saltLen+4] = uint8(keyIdLen)
+		copy(buffer[saltLen+5:], opt.keyId)
 		results = append(results, buffer)
 		return results, nil
 	default:
