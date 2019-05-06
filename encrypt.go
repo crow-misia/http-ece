@@ -4,6 +4,7 @@ import (
 	"crypto/cipher"
 	"crypto/elliptic"
 	"errors"
+	"fmt"
 )
 
 func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
@@ -28,11 +29,14 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 	debug.dumpBinary("sender pri", opt.private)
 
 	// Generate salt
-	if len(opt.salt) == 0 {
+	saltLen := len(opt.salt)
+	if saltLen == 0 {
 		opt.salt, err = randomSalt()
 		if err != nil {
 			return nil, err
 		}
+	} else if saltLen != keyLen {
+		return nil, errors.New(fmt.Sprintf("the salt parameter must be %d bytes", keyLen))
 	}
 
 	// Save the DH public key in the header unless keyId is set.
@@ -49,6 +53,15 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 	gcm, err := createCipher(key)
 	if err != nil {
 		return nil, err
+	}
+
+	// Check Record Size
+	overhead := opt.encoding.Padding()
+	if opt.encoding == AES128GCM {
+		overhead += gcm.Overhead()
+	}
+	if opt.rs <= overhead {
+		return nil, errors.New(fmt.Sprintf("The rs parameter has to be greater than %d", overhead))
 	}
 
 	// Calculate chunkSize.

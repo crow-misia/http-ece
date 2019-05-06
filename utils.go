@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"log"
-	"math/big"
 )
 
 var debug = debugT(false)
@@ -30,6 +29,7 @@ func parseOptions(mode mode, opts []Option) *options {
 	for _, o := range opts {
 		o(opt)
 	}
+
 	return opt
 }
 
@@ -48,11 +48,11 @@ func uint32ToBytes(i int) []byte {
 func generateNonce(baseNonce []byte, counter int) []byte {
 	x := make([]byte, nonceLen)
 	binary.BigEndian.PutUint32(x[8:], uint32(counter))
-	xor(x, baseNonce, x)
+	xor12(x, baseNonce, x)
 	return x
 }
 
-func xor(dst []byte, a []byte, b []byte) {
+func xor12(dst []byte, a []byte, b []byte) {
 	_ = dst[11]
 	_ = a[11]
 	_ = b[11]
@@ -89,26 +89,8 @@ func resultsJoin(s [][]byte) []byte {
 	return b
 }
 
-func computeSecret(curve elliptic.Curve, private []byte, public []byte) []byte {
-	x1, y1 := elliptic.Unmarshal(curve, public)
-
-	x2, _ := curve.ScalarMult(x1, y1, private)
-	return x2.Bytes()
-}
-
-func randomKey(curve elliptic.Curve) (private []byte, public []byte, err error) {
-	var x, y *big.Int
-	private, x, y, err = elliptic.GenerateKey(curve, rand.Reader)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	public = elliptic.Marshal(curve, x, y)
-	return
-}
-
 func randomSalt() ([]byte, error) {
-	salt := make([]byte, 16)
+	salt := make([]byte, keyLen)
 	_, err := rand.Read(salt)
 	if err != nil {
 		return nil, err

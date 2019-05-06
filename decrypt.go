@@ -4,7 +4,6 @@ import (
 	"crypto/cipher"
 	"crypto/elliptic"
 	"encoding/binary"
-	"log"
 )
 
 func Decrypt(content []byte, opts ...Option) ([]byte, error) {
@@ -74,11 +73,20 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 
 func readHeader(opt *options, content []byte) []byte {
 	if opt.encoding == AES128GCM {
-		idLen := int(content[20])
+		baseOffset := keyLen + 4
+
+		if len(content) <= baseOffset {
+
+		}
+
+		idLen := int(content[baseOffset])
+
 		opt.salt = content[0:keyLen]
-		opt.rs = int(binary.BigEndian.Uint32(content[keyLen : keyLen+4]))
-		opt.keyId = content[21 : 21+idLen]
-		return content[21+idLen:]
+		opt.rs = int(binary.BigEndian.Uint32(content[keyLen:baseOffset]))
+		baseOffset++
+		opt.keyId = content[baseOffset : baseOffset+idLen]
+
+		return content[baseOffset+idLen:]
 	}
 	return content
 }
@@ -86,7 +94,6 @@ func readHeader(opt *options, content []byte) []byte {
 func decryptRecord(opt *options, gcm cipher.AEAD, nonce []byte, content []byte) ([]byte, error) {
 	result, err := gcm.Open(nil, nonce, content, nil)
 	if err != nil {
-		log.Panic(err)
 		return nil, err
 	}
 

@@ -3,12 +3,16 @@ package http_ece
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/elliptic"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/hkdf"
 )
 
 type key []byte
+type publicKey []byte
+type privateKey []byte
 type nonce []byte
 
 func deriveKeyAndNonce(opt *options) (key, nonce, error) {
@@ -183,6 +187,23 @@ func newContext(opt *options) []byte {
 		return ctx
 	}
 	return nil
+}
+
+func computeSecret(curve elliptic.Curve, private privateKey, public publicKey) []byte {
+	x1, y1 := elliptic.Unmarshal(curve, public)
+
+	x2, _ := curve.ScalarMult(x1, y1, private)
+	return x2.Bytes()
+}
+
+func randomKey(curve elliptic.Curve) (privateKey, publicKey, error) {
+	private, x, y, err := elliptic.GenerateKey(curve, rand.Reader)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	public := elliptic.Marshal(curve, x, y)
+	return private, public, nil
 }
 
 func getKeys(opt *options) (sp []byte, rp []byte) {
