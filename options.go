@@ -62,7 +62,7 @@ func WithKeyLabel(v []byte) Option {
 	}
 }
 
-func WIthKeyMap(v func([]byte) []byte) Option {
+func WithKeyMap(v func([]byte) []byte) Option {
 	return func(opts *options) {
 		opts.keyMap = v
 	}
