@@ -23,7 +23,7 @@ func parseOptions(mode mode, opts []Option) *options {
 		mode:     mode,
 		curve:    elliptic.P256(),
 		encoding: AES128GCM,
-		rs:       4096,
+		rs:       sizeRecordDefault,
 		keyLabel: curveAlgorithm,
 	}
 	for _, o := range opts {
@@ -91,8 +91,7 @@ func resultsJoin(s [][]byte) []byte {
 
 func randomSalt() ([]byte, error) {
 	salt := make([]byte, keyLen)
-	_, err := rand.Read(salt)
-	if err != nil {
+	if _, err := rand.Read(salt); err != nil {
 		return nil, err
 	}
 	return salt, nil

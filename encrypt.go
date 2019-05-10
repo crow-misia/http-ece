@@ -14,10 +14,14 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 	opt := parseOptions(ENCRYPT, opts)
 	curve := opt.curve
 
+	// Check Record Size
+	if opt.rs < sizeRecordMin || opt.rs > sizeRecordMax {
+		return nil, errors.New(fmt.Sprintf("invalid record size: %d", opt.rs))
+	}
+
 	// Create or Set sender private key.
 	if opt.private == nil {
-		opt.private, opt.public, err = randomKey(curve)
-		if err != nil {
+		if opt.private, opt.public, err = randomKey(curve); err != nil {
 			return nil, err
 		}
 	} else {
@@ -25,14 +29,13 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 		opt.public = elliptic.Marshal(curve, x, y)
 	}
 
-	debug.dumpBinary("sender pub", opt.public)
-	debug.dumpBinary("sender pri", opt.private)
+	debug.dumpBinary("receiver public key", opt.dh)
+	debug.dumpBinary("sender private key", opt.private)
 
 	// Generate salt
 	saltLen := len(opt.salt)
 	if saltLen == 0 {
-		opt.salt, err = randomSalt()
-		if err != nil {
+		if opt.salt, err = randomSalt(); err != nil {
 			return nil, err
 		}
 	} else if saltLen != keyLen {
@@ -61,7 +64,7 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 		overhead += gcm.Overhead()
 	}
 	if opt.rs <= overhead {
-		return nil, errors.New(fmt.Sprintf("The rs parameter has to be greater than %d", overhead))
+		return nil, errors.New(fmt.Sprintf("the rs parameter has to be greater than %d", overhead))
 	}
 
 	// Calculate chunkSize.
@@ -136,7 +139,7 @@ func writeHeader(opt *options, results [][]byte) ([][]byte, error) {
 	switch opt.encoding {
 	case AES128GCM:
 		keyIdLen := len(opt.keyId)
-		if keyIdLen > 255 {
+		if keyIdLen > keyIdLenMax {
 			return nil, errors.New("keyId is too large")
 		}
 

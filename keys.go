@@ -64,8 +64,7 @@ func deriveKeyAndNonce(opt *options) (key, nonce, error) {
 	debug.dumpBinary("hkdf info", nonceInfo)
 
 	nonce := make([]byte, nonceLen)
-	_, err = hkdf.Expand(hashAlgorithm, prk, nonceInfo).Read(nonce)
-	if err != nil {
+	if _, err = hkdf.Expand(hashAlgorithm, prk, nonceInfo).Read(nonce); err != nil {
 		return nil, nil, err
 	}
 	debug.dumpBinary("base nonce", nonce)
@@ -85,11 +84,11 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 	if optKeyLen > 0 {
 		secret = opt.key
 		if optKeyLen != keyLen {
-			return nil, nil, errors.New(fmt.Sprintf("An explicit Key must be %d bytes", keyLen))
+			return nil, nil, errors.New(fmt.Sprintf("an explicit Key must be %d bytes", keyLen))
 		}
 		context = nil
 	} else if opt.private != nil {
-		debug.dumpBinary("receiver pub", opt.public)
+		debug.dumpBinary("receiver public key", opt.public)
 
 		secret = computeSecret(opt.curve, opt.private, opt.dh)
 		context = newContext(opt)
@@ -126,7 +125,7 @@ func extractSecret(opt *options) ([]byte, error) {
 	optKeyLen := len(opt.key)
 	if optKeyLen > 0 {
 		if optKeyLen != keyLen {
-			return nil, errors.New(fmt.Sprintf("An explicit Key must be %d bytes", keyLen))
+			return nil, errors.New(fmt.Sprintf("an explicit Key must be %d bytes", keyLen))
 		}
 		return opt.key, nil
 	}

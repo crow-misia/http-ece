@@ -5,11 +5,13 @@ import (
 )
 
 const (
-	sizeRecordMin = 3
-	sizeRecordMax = 2 ^ 31 - 1
-	keyLen        = 16
-	nonceLen      = 12
-	secretLen     = 32
+	sizeRecordDefault = 4096
+	sizeRecordMin     = 3
+	sizeRecordMax     = 2147483647
+	keyIdLenMax       = 255
+	keyLen            = 16
+	nonceLen          = 12
+	secretLen         = 32
 )
 
 var (

@@ -4,6 +4,8 @@ import (
 	"crypto/cipher"
 	"crypto/elliptic"
 	"encoding/binary"
+	"errors"
+	"fmt"
 )
 
 func Decrypt(content []byte, opts ...Option) ([]byte, error) {
@@ -15,8 +17,7 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 
 	// Create or Set receiver private key.
 	if opt.private == nil {
-		opt.private, opt.public, err = randomKey(opt.curve)
-		if err != nil {
+		if opt.private, opt.public, err = randomKey(opt.curve); err != nil {
 			return nil, err
 		}
 	} else {
@@ -26,8 +27,13 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 
 	content = readHeader(opt, content)
 
-	debug.dumpBinary("sender pub", opt.dh)
-	debug.dumpBinary("receiver pri", opt.private)
+	// Check Record Size
+	if opt.rs < sizeRecordMin || opt.rs > sizeRecordMax {
+		return nil, errors.New(fmt.Sprintf("invalid record size: %d", opt.rs))
+	}
+
+	debug.dumpBinary("sender public key", opt.dh)
+	debug.dumpBinary("receiver private key", opt.private)
 
 	// Derive key and nonce.
 	key, baseNonce, err := deriveKeyAndNonce(opt)
@@ -74,17 +80,12 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 func readHeader(opt *options, content []byte) []byte {
 	if opt.encoding == AES128GCM {
 		baseOffset := keyLen + 4
-
-		if len(content) <= baseOffset {
-
-		}
-
 		idLen := int(content[baseOffset])
 
 		opt.salt = content[0:keyLen]
 		opt.rs = int(binary.BigEndian.Uint32(content[keyLen:baseOffset]))
 		baseOffset++
-		opt.keyId = content[baseOffset : baseOffset+idLen]
+		opt.keyId = content[baseOffset:baseOffset+idLen]
 
 		return content[baseOffset+idLen:]
 	}
