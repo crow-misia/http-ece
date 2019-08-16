@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2019 Zenichi Amano
+ *
+ * This file is part of http-ece, which is MIT licensed.
+ * See http://opensource.org/licenses/MIT
+ */
+
 package http_ece
 
 import (
@@ -85,7 +92,7 @@ func readHeader(opt *options, content []byte) []byte {
 		opt.salt = content[0:keyLen]
 		opt.rs = int(binary.BigEndian.Uint32(content[keyLen:baseOffset]))
 		baseOffset++
-		opt.keyId = content[baseOffset:baseOffset+idLen]
+		opt.keyId = content[baseOffset : baseOffset+idLen]
 
 		return content[baseOffset+idLen:]
 	}

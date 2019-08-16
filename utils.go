@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2019 Zenichi Amano
+ *
+ * This file is part of http-ece, which is MIT licensed.
+ * See http://opensource.org/licenses/MIT
+ */
+
 package http_ece
 
 import (
@@ -18,7 +25,7 @@ func (d debugT) dumpBinary(base string, data []byte) {
 	}
 }
 
-func parseOptions(mode mode, opts []Option) *options {
+func parseOptions(mode Mode, opts []Option) *options {
 	opt := &options{
 		mode:     mode,
 		curve:    elliptic.P256(),
