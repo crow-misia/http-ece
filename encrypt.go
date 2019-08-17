@@ -5,7 +5,7 @@
  * See http://opensource.org/licenses/MIT
  */
 
-package http_ece
+package httpece
 
 import (
 	"crypto/cipher"
@@ -14,16 +14,17 @@ import (
 	"fmt"
 )
 
+// Encrypt encrypts plaintext data.
 func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 	var err error
 
 	// Options
-	opt := parseOptions(ENCRYPT, opts)
+	opt := parseOptions(encrypt, opts)
 	curve := opt.curve
 
 	// Check Record Size
 	if opt.rs < sizeRecordMin || opt.rs > sizeRecordMax {
-		return nil, errors.New(fmt.Sprintf("invalid record size: %d", opt.rs))
+		return nil, fmt.Errorf("invalid record size: %d", opt.rs)
 	}
 
 	// Create or Set sender private key.
@@ -46,12 +47,12 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 			return nil, err
 		}
 	} else if saltLen != keyLen {
-		return nil, errors.New(fmt.Sprintf("the salt parameter must be %d bytes", keyLen))
+		return nil, fmt.Errorf("the salt parameter must be %d bytes", keyLen)
 	}
 
 	// Save the DH public key in the header unless keyId is set.
-	if opt.encoding == AES128GCM && len(opt.keyId) == 0 {
-		opt.keyId = opt.public
+	if opt.encoding == AES128GCM && len(opt.keyID) == 0 {
+		opt.keyID = opt.public
 	}
 
 	// Derive key and nonce.
@@ -71,7 +72,7 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 		overhead += gcm.Overhead()
 	}
 	if opt.rs <= overhead {
-		return nil, errors.New(fmt.Sprintf("the rs parameter has to be greater than %d", overhead))
+		return nil, fmt.Errorf("the rs parameter has to be greater than %d", overhead)
 	}
 
 	// Calculate chunkSize.
@@ -145,17 +146,17 @@ func appendPad(plaintext []byte, encoding ContentEncoding, last bool) []byte {
 func writeHeader(opt *options, results [][]byte) ([][]byte, error) {
 	switch opt.encoding {
 	case AES128GCM:
-		keyIdLen := len(opt.keyId)
-		if keyIdLen > keyIdLenMax {
+		keyIDLen := len(opt.keyID)
+		if keyIDLen > keyIDLenMax {
 			return nil, errors.New("keyId is too large")
 		}
 
 		saltLen := len(opt.salt)
-		buffer := make([]byte, saltLen+4+1+keyIdLen)
+		buffer := make([]byte, saltLen+4+1+keyIDLen)
 		copy(buffer, opt.salt)
 		copy(buffer[saltLen:], uint32ToBytes(opt.rs))
-		buffer[saltLen+4] = uint8(keyIdLen)
-		copy(buffer[saltLen+5:], opt.keyId)
+		buffer[saltLen+4] = uint8(keyIDLen)
+		copy(buffer[saltLen+5:], opt.keyID)
 		results = append(results, buffer)
 		return results, nil
 	default:

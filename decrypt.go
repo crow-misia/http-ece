@@ -5,21 +5,21 @@
  * See http://opensource.org/licenses/MIT
  */
 
-package http_ece
+package httpece
 
 import (
 	"crypto/cipher"
 	"crypto/elliptic"
 	"encoding/binary"
-	"errors"
 	"fmt"
 )
 
+// Decrypt decrypts content data.
 func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 	var err error
 
 	// Options
-	opt := parseOptions(DECRYPT, opts)
+	opt := parseOptions(decrypt, opts)
 	curve := opt.curve
 
 	// Create or Set receiver private key.
@@ -36,7 +36,7 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 
 	// Check Record Size
 	if opt.rs < sizeRecordMin || opt.rs > sizeRecordMax {
-		return nil, errors.New(fmt.Sprintf("invalid record size: %d", opt.rs))
+		return nil, fmt.Errorf("invalid record size: %d", opt.rs)
 	}
 
 	debug.dumpBinary("sender public key", opt.dh)
@@ -92,7 +92,7 @@ func readHeader(opt *options, content []byte) []byte {
 		opt.salt = content[0:keyLen]
 		opt.rs = int(binary.BigEndian.Uint32(content[keyLen:baseOffset]))
 		baseOffset++
-		opt.keyId = content[baseOffset : baseOffset+idLen]
+		opt.keyID = content[baseOffset : baseOffset+idLen]
 
 		return content[baseOffset+idLen:]
 	}

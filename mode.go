@@ -5,12 +5,12 @@
  * See http://opensource.org/licenses/MIT
  */
 
-package http_ece
+package httpece
 
-type Mode int
+type mode int
 
 const (
-	_ Mode = iota
-	DECRYPT
-	ENCRYPT
+	_ mode = iota
+	decrypt
+	encrypt
 )

@@ -5,9 +5,11 @@
  * See http://opensource.org/licenses/MIT
  */
 
-package http_ece
+package httpece
 
 //go:generate stringer -type=ContentEncoding
+
+//ContentEncoding is crypto data encoding
 type ContentEncoding int
 
 const (
@@ -16,6 +18,7 @@ const (
 	AESGCM
 )
 
+// Padding returns crypto data padding size.
 func (i ContentEncoding) Padding() int {
 	switch i {
 	case AES128GCM:

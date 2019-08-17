@@ -5,14 +5,14 @@
  * See http://opensource.org/licenses/MIT
  */
 
-package http_ece
+package httpece
 
 import (
 	"crypto/elliptic"
 )
 
 type options struct {
-	mode       Mode                // Encrypt / Decrypt Mode
+	mode       mode                // Encrypt / Decrypt Mode
 	curve      elliptic.Curve      // Curve Algorithm
 	encoding   ContentEncoding     // Content Encoding
 	rs         int                 // Record Size
@@ -22,7 +22,7 @@ type options struct {
 	private    []byte              // DH Private key
 	public     []byte              // DH Public key
 	dh         []byte              // Remote Diffie Hellman sequence
-	keyId      []byte              // key Identifier
+	keyID      []byte              // key Identifier
 	keyLabel   []byte              // Key Label
 	keyMap     func([]byte) []byte // Key Mapping Function
 }

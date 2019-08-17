@@ -5,7 +5,7 @@
  * See http://opensource.org/licenses/MIT
  */
 
-package http_ece
+package httpece
 
 import (
 	"encoding/base64"

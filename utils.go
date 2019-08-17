@@ -5,7 +5,7 @@
  * See http://opensource.org/licenses/MIT
  */
 
-package http_ece
+package httpece
 
 import (
 	"crypto/elliptic"
@@ -25,7 +25,7 @@ func (d debugT) dumpBinary(base string, data []byte) {
 	}
 }
 
-func parseOptions(mode Mode, opts []Option) *options {
+func parseOptions(mode mode, opts []Option) *options {
 	opt := &options{
 		mode:     mode,
 		curve:    elliptic.P256(),

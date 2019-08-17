@@ -5,7 +5,7 @@
  * See http://opensource.org/licenses/MIT
  */
 
-package http_ece
+package httpece
 
 import (
 	"crypto/aes"
@@ -46,7 +46,7 @@ func deriveKeyAndNonce(opt *options) (key, nonce, error) {
 		nonceInfo = buildInfo(nonceBaseInfo, nil)
 		break
 	default:
-		return nil, nil, errors.New(fmt.Sprintf("must include a Salt parameter for %s", opt.encoding.String()))
+		return nil, nil, fmt.Errorf("must include a Salt parameter for %s", opt.encoding.String())
 	}
 
 	debug.dumpBinary("info aesgcm", keyInfo)
@@ -91,7 +91,7 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 	if optKeyLen > 0 {
 		secret = opt.key
 		if optKeyLen != keyLen {
-			return nil, nil, errors.New(fmt.Sprintf("an explicit Key must be %d bytes", keyLen))
+			return nil, nil, fmt.Errorf("an explicit Key must be %d bytes", keyLen)
 		}
 		context = nil
 	} else if opt.private != nil {
@@ -99,8 +99,8 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 
 		secret = computeSecret(opt.curve, opt.private, opt.dh)
 		context = newContext(opt)
-	} else if opt.keyId != nil {
-		secret = opt.keyMap(opt.keyId)
+	} else if opt.keyID != nil {
+		secret = opt.keyMap(opt.keyID)
 		context = nil
 	}
 
@@ -132,7 +132,7 @@ func extractSecret(opt *options) ([]byte, error) {
 	optKeyLen := len(opt.key)
 	if optKeyLen > 0 {
 		if optKeyLen != keyLen {
-			return nil, errors.New(fmt.Sprintf("an explicit Key must be %d bytes", keyLen))
+			return nil, fmt.Errorf("an explicit Key must be %d bytes", keyLen)
 		}
 		return opt.key, nil
 	}
@@ -213,7 +213,7 @@ func randomKey(curve elliptic.Curve) (privateKey, publicKey, error) {
 }
 
 func getKeys(opt *options) (sp []byte, rp []byte) {
-	if opt.mode == DECRYPT {
+	if opt.mode == decrypt {
 		return opt.dh, opt.public
 	}
 	return opt.public, opt.dh

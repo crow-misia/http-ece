@@ -5,7 +5,7 @@
  * See http://opensource.org/licenses/MIT
  */
 
-package http_ece
+package httpece
 
 import (
 	"crypto/sha256"
@@ -15,7 +15,7 @@ const (
 	sizeRecordDefault = 4096
 	sizeRecordMin     = 3
 	sizeRecordMax     = 2147483647
-	keyIdLenMax       = 255
+	keyIDLenMax       = 255
 	keyLen            = 16
 	nonceLen          = 12
 	secretLen         = 32
