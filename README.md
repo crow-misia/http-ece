@@ -8,7 +8,7 @@ a simple implementation of encrypted-content-encoding for Go.
 
 # Requirements
 
-Go 1.12 and beyond.
+Go 1.16 and beyond.
 
 # Install
 
