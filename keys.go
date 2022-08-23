@@ -199,7 +199,8 @@ func computeSecret(curve elliptic.Curve, private privateKey, public publicKey) [
 	x1, y1 := elliptic.Unmarshal(curve, public)
 
 	x2, _ := curve.ScalarMult(x1, y1, private)
-	return x2.Bytes()
+	r := make([]byte, secretLen)
+	return x2.FillBytes(r)
 }
 
 func randomKey(curve elliptic.Curve) (privateKey, publicKey, error) {
