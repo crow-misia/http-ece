@@ -93,7 +93,7 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 		}
 		context = nil
 	} else if opt.private != nil {
-		if secret, err = opt.private.ECDH(opt.dh); err != nil {
+		if secret, err = getSecret(opt); err != nil {
 			return nil, nil, err
 		}
 		context = newContext(opt)
@@ -140,7 +140,7 @@ func extractSecret(opt *options) ([]byte, error) {
 
 	var secret []byte
 	var err error
-	if secret, err = opt.private.ECDH(opt.dh); err != nil {
+	if secret, err = getSecret(opt); err != nil {
 		return nil, err
 	}
 	sp, rp := getKeys(opt)
@@ -197,18 +197,21 @@ func newContext(opt *options) []byte {
 	return nil
 }
 
-func computeSecret(privateKey *ecdh.PrivateKey, publicKey *ecdh.PublicKey) ([]byte, error) {
-	return privateKey.ECDH(publicKey)
-}
-
 func randomKey(curve ecdh.Curve) (*ecdh.PrivateKey, error) {
 	return curve.GenerateKey(rand.Reader)
 }
 
-func getKeys(opt *options) (sp []byte, rp []byte) {
-	publicKey := opt.private.PublicKey()
+func getKeys(opt *options) (sp, rp []byte) {
 	if opt.mode == decrypt {
-		return opt.dh.Bytes(), publicKey.Bytes()
+		return opt.dh, opt.public
 	}
-	return publicKey.Bytes(), opt.dh.Bytes()
+	return opt.public, opt.dh
+}
+
+func getSecret(opt *options) (secret []byte, err error) {
+	var dh *ecdh.PublicKey
+	if dh, err = opt.curve.NewPublicKey(opt.dh); err != nil {
+		return nil, err
+	}
+	return opt.privateKey.ECDH(dh)
 }

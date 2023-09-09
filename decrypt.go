@@ -22,14 +22,6 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 	if opt, err = parseOptions(decrypt, opts); err != nil {
 		return nil, err
 	}
-	curve := opt.curve
-
-	// Create or Set receiver private key.
-	if opt.private == nil {
-		if opt.private, err = randomKey(curve); err != nil {
-			return nil, err
-		}
-	}
 
 	content = readHeader(opt, content)
 
@@ -38,8 +30,8 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 		return nil, fmt.Errorf("invalid record size: %d", opt.rs)
 	}
 
-	debug.dumpBinary("sender public key", opt.dh.Bytes())
-	debug.dumpBinary("receiver private key", opt.private.Bytes())
+	debug.dumpBinary("sender public key", opt.dh)
+	debug.dumpBinary("receiver private key", opt.private)
 
 	// Derive key and nonce.
 	key, baseNonce, err := deriveKeyAndNonce(opt)

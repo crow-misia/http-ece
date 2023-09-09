@@ -15,7 +15,6 @@ import (
 )
 
 func TestDecryptWithAESGCM(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("yfSYB+/vCEoWklHCG7F99cQ1vRwemFYn87jZc8PHBwU=")
@@ -25,8 +24,8 @@ func TestDecryptWithAESGCM(t *testing.T) {
 		WithEncoding(AESGCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, senderPublicKey),
+		WithPrivate(privateKey),
+		WithDh(senderPublicKey),
 	)
 
 	if assert.Nil(t, err) {
@@ -35,7 +34,6 @@ func TestDecryptWithAESGCM(t *testing.T) {
 }
 
 func TestDecryptWithAESGCM_2record(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("yfSYB+/vCEoWklHCG7F99cQ1vRwemFYn87jZc8PHBwU=")
@@ -45,8 +43,8 @@ func TestDecryptWithAESGCM_2record(t *testing.T) {
 		WithEncoding(AESGCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, senderPublicKey),
+		WithPrivate(privateKey),
+		WithDh(senderPublicKey),
 	)
 
 	if assert.Nil(t, err) {
@@ -55,17 +53,17 @@ func TestDecryptWithAESGCM_2record(t *testing.T) {
 }
 
 func TestDecryptWithAESGCM_WrongKey(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
+	privateKey, _ := randomKey(ecdh.P256())
 	senderPublicKey := d("BGJXZ4zDA04RfSgTufdauZXcNYbe3oF/yEri5ETSuZLDx70gYi7w2ytak8U82H01P1HYnIvr2fEeX7NZpeHdnhM=")
 	content := d("vOjpVgZE4IYn/uEJKk3DzZ4X+Qr1dgSSUkuIzQE=")
 	plaintext, err := Decrypt(content,
 		WithEncoding(AESGCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
-		WithRandomPrivate(curve),
-		WithDh(curve, senderPublicKey),
+		WithPrivate(privateKey.Bytes()),
+		WithDh(senderPublicKey),
 	)
 
 	assert.EqualError(t, err, "cipher: message authentication failed")
@@ -73,7 +71,6 @@ func TestDecryptWithAESGCM_WrongKey(t *testing.T) {
 }
 
 func TestDecryptWithAESGCM_NoAuthSecret(t *testing.T) {
-	curve := ecdh.P256()
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("yfSYB+/vCEoWklHCG7F99cQ1vRwemFYn87jZc8PHBwU=")
 	senderPublicKey := d("BGJXZ4zDA04RfSgTufdauZXcNYbe3oF/yEri5ETSuZLDx70gYi7w2ytak8U82H01P1HYnIvr2fEeX7NZpeHdnhM=")
@@ -81,8 +78,8 @@ func TestDecryptWithAESGCM_NoAuthSecret(t *testing.T) {
 	plaintext, err := Decrypt(content,
 		WithEncoding(AESGCM),
 		WithSalt(salt),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, senderPublicKey),
+		WithPrivate(privateKey),
+		WithDh(senderPublicKey),
 	)
 
 	if assert.Nil(t, err) {
@@ -91,7 +88,6 @@ func TestDecryptWithAESGCM_NoAuthSecret(t *testing.T) {
 }
 
 func TestDecryptWithAES128GCM(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	privateKey := d("yfSYB+/vCEoWklHCG7F99cQ1vRwemFYn87jZc8PHBwU=")
 	senderPublicKey := d("BGJXZ4zDA04RfSgTufdauZXcNYbe3oF/yEri5ETSuZLDx70gYi7w2ytak8U82H01P1HYnIvr2fEeX7NZpeHdnhM=")
@@ -99,8 +95,8 @@ func TestDecryptWithAES128GCM(t *testing.T) {
 	plaintext, err := Decrypt(content,
 		WithEncoding(AES128GCM),
 		WithAuthSecret(authSecret),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, senderPublicKey),
+		WithPrivate(privateKey),
+		WithDh(senderPublicKey),
 	)
 
 	if assert.Nil(t, err) {
@@ -109,15 +105,15 @@ func TestDecryptWithAES128GCM(t *testing.T) {
 }
 
 func TestDecryptWithAES128GCM_WrongKey(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
+	privateKey, _ := randomKey(ecdh.P256())
 	senderPublicKey := d("BGJXZ4zDA04RfSgTufdauZXcNYbe3oF/yEri5ETSuZLDx70gYi7w2ytak8U82H01P1HYnIvr2fEeX7NZpeHdnhM=")
 	content := d("mRGYnIzSJGeZnJ19lgQcfwAAEABBBGJXZ4zDA04RfSgTufdauZXcNYbe3oF/yEri5ETSuZLDx70gYi7w2ytak8U82H01P1HYnIvr2fEeX7NZpeHdnhPF+Ah4eiBMGQcXDvtjM/2s1KUn64dsYvM2ljQ1")
 	plaintext, err := Decrypt(content,
 		WithEncoding(AES128GCM),
 		WithAuthSecret(authSecret),
-		WithRandomPrivate(curve),
-		WithDh(curve, senderPublicKey),
+		WithPrivate(privateKey.Bytes()),
+		WithDh(senderPublicKey),
 	)
 
 	assert.EqualError(t, err, "cipher: message authentication failed")
@@ -125,14 +121,13 @@ func TestDecryptWithAES128GCM_WrongKey(t *testing.T) {
 }
 
 func TestDecryptWithAES128GCM_NoAuthSecret(t *testing.T) {
-	curve := ecdh.P256()
 	privateKey := d("yfSYB+/vCEoWklHCG7F99cQ1vRwemFYn87jZc8PHBwU=")
 	senderPublicKey := d("BGJXZ4zDA04RfSgTufdauZXcNYbe3oF/yEri5ETSuZLDx70gYi7w2ytak8U82H01P1HYnIvr2fEeX7NZpeHdnhM=")
 	content := d("mRGYnIzSJGeZnJ19lgQcfwAAEABBBGJXZ4zDA04RfSgTufdauZXcNYbe3oF/yEri5ETSuZLDx70gYi7w2ytak8U82H01P1HYnIvr2fEeX7NZpeHdnhPF+Ah4eiBMGQcXDvtjM/2s1KUn64dsYvM2ljQ1")
 	plaintext, err := Decrypt(content,
 		WithEncoding(AES128GCM),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, senderPublicKey),
+		WithPrivate(privateKey),
+		WithDh(senderPublicKey),
 	)
 
 	assert.EqualError(t, err, "no authentication secret for webpush")
@@ -140,7 +135,6 @@ func TestDecryptWithAES128GCM_NoAuthSecret(t *testing.T) {
 }
 
 func TestDecryptWithAES128GCMBigRecordSize(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	privateKey := d("yfSYB+/vCEoWklHCG7F99cQ1vRwemFYn87jZc8PHBwU=")
 	senderPublicKey := d("BGJXZ4zDA04RfSgTufdauZXcNYbe3oF/yEri5ETSuZLDx70gYi7w2ytak8U82H01P1HYnIvr2fEeX7NZpeHdnhM=")
@@ -148,8 +142,8 @@ func TestDecryptWithAES128GCMBigRecordSize(t *testing.T) {
 	plaintext, err := Decrypt(content,
 		WithEncoding(AES128GCM),
 		WithAuthSecret(authSecret),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, senderPublicKey),
+		WithPrivate(privateKey),
+		WithDh(senderPublicKey),
 	)
 
 	if assert.Nil(t, err) {

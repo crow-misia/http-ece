@@ -22,22 +22,14 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 	if opt, err = parseOptions(encrypt, opts); err != nil {
 		return nil, err
 	}
-	curve := opt.curve
 
 	// Check Record Size
 	if opt.rs < sizeRecordMin || opt.rs > sizeRecordMax {
 		return nil, fmt.Errorf("invalid record size: %d", opt.rs)
 	}
 
-	// Create or Set sender private key.
-	if opt.private == nil {
-		if opt.private, err = randomKey(curve); err != nil {
-			return nil, err
-		}
-	}
-
-	debug.dumpBinary("receiver public key", opt.dh.Bytes())
-	debug.dumpBinary("sender private key", opt.private.Bytes())
+	debug.dumpBinary("receiver public key", opt.dh)
+	debug.dumpBinary("sender private key", opt.private)
 
 	// Generate salt
 	saltLen := len(opt.salt)
@@ -51,7 +43,7 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 
 	// Save the DH public key in the header unless keyId is set.
 	if opt.encoding == AES128GCM && len(opt.keyID) == 0 {
-		opt.keyID = opt.private.PublicKey().Bytes()
+		opt.keyID = opt.public
 	}
 
 	// Derive key and nonce.

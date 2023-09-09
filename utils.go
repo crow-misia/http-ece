@@ -35,12 +35,11 @@ func parseOptions(mode mode, opts []Option) (*options, error) {
 	}
 
 	for _, o := range opts {
-		f, err := o()
-		if err != nil {
-			return nil, err
-		}
+		o(opt)
+	}
 
-		f(opt)
+	if err := opt.initialize(); err != nil {
+		return nil, err
 	}
 
 	return opt, nil

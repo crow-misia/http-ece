@@ -8,7 +8,6 @@
 package httpece
 
 import (
-	"crypto/ecdh"
 	"encoding/base64"
 	"github.com/stretchr/testify/assert"
 	"strings"
@@ -16,7 +15,6 @@ import (
 )
 
 func TestEncryptWithAESGCM(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
@@ -26,8 +24,8 @@ func TestEncryptWithAESGCM(t *testing.T) {
 		WithEncoding(AESGCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, peersPublicKey),
+		WithPrivate(privateKey),
+		WithDh(peersPublicKey),
 	)
 
 	e := base64.StdEncoding.EncodeToString
@@ -38,7 +36,6 @@ func TestEncryptWithAESGCM(t *testing.T) {
 }
 
 func TestEncryptWithAESGCM4093Byte(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
@@ -48,8 +45,8 @@ func TestEncryptWithAESGCM4093Byte(t *testing.T) {
 		WithEncoding(AESGCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, peersPublicKey),
+		WithPrivate(privateKey),
+		WithDh(peersPublicKey),
 	)
 
 	e := base64.StdEncoding.EncodeToString
@@ -60,7 +57,6 @@ func TestEncryptWithAESGCM4093Byte(t *testing.T) {
 }
 
 func TestEncryptWithAESGCM4094Byte(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
@@ -70,8 +66,8 @@ func TestEncryptWithAESGCM4094Byte(t *testing.T) {
 		WithEncoding(AESGCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, peersPublicKey),
+		WithPrivate(privateKey),
+		WithDh(peersPublicKey),
 	)
 
 	e := base64.StdEncoding.EncodeToString
@@ -82,7 +78,6 @@ func TestEncryptWithAESGCM4094Byte(t *testing.T) {
 }
 
 func TestEncryptWithAESGCM4095Byte(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
@@ -92,8 +87,8 @@ func TestEncryptWithAESGCM4095Byte(t *testing.T) {
 		WithEncoding(AESGCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, peersPublicKey),
+		WithPrivate(privateKey),
+		WithDh(peersPublicKey),
 	)
 
 	e := base64.StdEncoding.EncodeToString
@@ -104,7 +99,6 @@ func TestEncryptWithAESGCM4095Byte(t *testing.T) {
 }
 
 func TestEncryptWithAESGCM_NoAuthSecret(t *testing.T) {
-	curve := ecdh.P256()
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
 	peersPublicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
@@ -112,8 +106,8 @@ func TestEncryptWithAESGCM_NoAuthSecret(t *testing.T) {
 	content, err := Encrypt(plaintext,
 		WithEncoding(AESGCM),
 		WithSalt(salt),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, peersPublicKey))
+		WithPrivate(privateKey),
+		WithDh(peersPublicKey))
 
 	e := base64.StdEncoding.EncodeToString
 
@@ -123,7 +117,6 @@ func TestEncryptWithAESGCM_NoAuthSecret(t *testing.T) {
 }
 
 func TestEncryptWithAES128GCM(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
@@ -133,8 +126,8 @@ func TestEncryptWithAES128GCM(t *testing.T) {
 		WithEncoding(AES128GCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, peersPublicKey),
+		WithPrivate(privateKey),
+		WithDh(peersPublicKey),
 	)
 
 	e := base64.StdEncoding.EncodeToString
@@ -145,7 +138,6 @@ func TestEncryptWithAES128GCM(t *testing.T) {
 }
 
 func TestEncryptWithAES128GCM4079Byte(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
@@ -155,8 +147,8 @@ func TestEncryptWithAES128GCM4079Byte(t *testing.T) {
 		WithEncoding(AES128GCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, peersPublicKey),
+		WithPrivate(privateKey),
+		WithDh(peersPublicKey),
 	)
 
 	e := base64.StdEncoding.EncodeToString
@@ -167,7 +159,6 @@ func TestEncryptWithAES128GCM4079Byte(t *testing.T) {
 }
 
 func TestEncryptWithAES128GCM4080Byte(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
@@ -177,8 +168,8 @@ func TestEncryptWithAES128GCM4080Byte(t *testing.T) {
 		WithEncoding(AES128GCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, peersPublicKey),
+		WithPrivate(privateKey),
+		WithDh(peersPublicKey),
 	)
 
 	e := base64.StdEncoding.EncodeToString
@@ -189,7 +180,6 @@ func TestEncryptWithAES128GCM4080Byte(t *testing.T) {
 }
 
 func TestEncryptWithAES128GCM4081Byte(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
@@ -199,8 +189,8 @@ func TestEncryptWithAES128GCM4081Byte(t *testing.T) {
 		WithEncoding(AES128GCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, peersPublicKey),
+		WithPrivate(privateKey),
+		WithDh(peersPublicKey),
 	)
 
 	e := base64.StdEncoding.EncodeToString
@@ -211,7 +201,6 @@ func TestEncryptWithAES128GCM4081Byte(t *testing.T) {
 }
 
 func TestEncryptWithAES128GCM_NoAuthSecret(t *testing.T) {
-	curve := ecdh.P256()
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
 	peersPublicKey := d("BBixsHNhTqN5jYhpguokCWQhGKoZlroyEj6GYr6hy79z1IeTEQdupEsW6xooLvM170j9Ekss3amjhOmDNP5Pi0s=")
@@ -219,15 +208,14 @@ func TestEncryptWithAES128GCM_NoAuthSecret(t *testing.T) {
 	content, err := Encrypt(plaintext,
 		WithEncoding(AES128GCM),
 		WithSalt(salt),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, peersPublicKey))
+		WithPrivate(privateKey),
+		WithDh(peersPublicKey))
 
 	assert.Nil(t, content)
 	assert.EqualError(t, err, "no authentication secret for webpush")
 }
 
 func TestEncryptWithAES128GCMBigRecordSize(t *testing.T) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
@@ -237,8 +225,8 @@ func TestEncryptWithAES128GCMBigRecordSize(t *testing.T) {
 		WithEncoding(AES128GCM),
 		WithSalt(salt),
 		WithAuthSecret(authSecret),
-		WithPrivate(curve, privateKey),
-		WithDh(curve, peersPublicKey),
+		WithPrivate(privateKey),
+		WithDh(peersPublicKey),
 		WithRecordSize(10240),
 	)
 
@@ -250,7 +238,6 @@ func TestEncryptWithAES128GCMBigRecordSize(t *testing.T) {
 }
 
 func BenchmarkEncrypt(b *testing.B) {
-	curve := ecdh.P256()
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
 	privateKey := d("/oQYbac5yEOeOeg+5D0QxOaB1YtiyONxkqmxU3+tq58=")
@@ -266,8 +253,8 @@ func BenchmarkEncrypt(b *testing.B) {
 			WithEncoding(AES128GCM),
 			WithSalt(salt),
 			WithAuthSecret(authSecret),
-			WithPrivate(curve, privateKey),
-			WithDh(curve, peersPublicKey))
+			WithPrivate(privateKey),
+			WithDh(peersPublicKey))
 	}
 	b.StopTimer()
 
