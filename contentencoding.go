@@ -9,7 +9,7 @@ package httpece
 
 //go:generate stringer -type=ContentEncoding
 
-//ContentEncoding is crypto data encoding
+// ContentEncoding is crypto data encoding
 type ContentEncoding int
 
 const (

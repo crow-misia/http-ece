@@ -9,27 +9,26 @@ package httpece
 
 import (
 	"crypto/cipher"
-	"crypto/elliptic"
 	"encoding/binary"
 	"fmt"
 )
 
 // Decrypt decrypts content data.
 func Decrypt(content []byte, opts ...Option) ([]byte, error) {
+	var opt *options
 	var err error
 
 	// Options
-	opt := parseOptions(decrypt, opts)
+	if opt, err = parseOptions(decrypt, opts); err != nil {
+		return nil, err
+	}
 	curve := opt.curve
 
 	// Create or Set receiver private key.
 	if opt.private == nil {
-		if opt.private, opt.public, err = randomKey(opt.curve); err != nil {
+		if opt.private, err = randomKey(curve); err != nil {
 			return nil, err
 		}
-	} else {
-		x, y := curve.ScalarBaseMult(opt.private)
-		opt.public = elliptic.Marshal(curve, x, y)
 	}
 
 	content = readHeader(opt, content)
@@ -39,8 +38,8 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 		return nil, fmt.Errorf("invalid record size: %d", opt.rs)
 	}
 
-	debug.dumpBinary("sender public key", opt.dh)
-	debug.dumpBinary("receiver private key", opt.private)
+	debug.dumpBinary("sender public key", opt.dh.Bytes())
+	debug.dumpBinary("receiver private key", opt.private.Bytes())
 
 	// Derive key and nonce.
 	key, baseNonce, err := deriveKeyAndNonce(opt)

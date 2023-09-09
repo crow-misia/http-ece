@@ -1,10 +1,10 @@
 module github.com/crow-misia/http-ece
 
-go 1.17
+go 1.20
 
 require (
-	github.com/stretchr/testify v1.8.2
-	golang.org/x/crypto v0.8.0
+	github.com/stretchr/testify v1.8.4
+	golang.org/x/crypto v0.13.0
 )
 
 require (

@@ -8,7 +8,7 @@
 package httpece
 
 import (
-	"crypto/elliptic"
+	"crypto/ecdh"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/binary"
@@ -25,19 +25,25 @@ func (d debugT) dumpBinary(base string, data []byte) {
 	}
 }
 
-func parseOptions(mode mode, opts []Option) *options {
+func parseOptions(mode mode, opts []Option) (*options, error) {
 	opt := &options{
 		mode:     mode,
-		curve:    elliptic.P256(),
+		curve:    ecdh.P256(),
 		encoding: AES128GCM,
 		rs:       sizeRecordDefault,
 		keyLabel: curveAlgorithm,
 	}
+
 	for _, o := range opts {
-		o(opt)
+		f, err := o()
+		if err != nil {
+			return nil, err
+		}
+
+		f(opt)
 	}
 
-	return opt
+	return opt, nil
 }
 
 func uint16ToBytes(i int) []byte {

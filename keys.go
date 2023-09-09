@@ -10,7 +10,7 @@ package httpece
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/elliptic"
+	"crypto/ecdh"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -18,8 +18,6 @@ import (
 )
 
 type key []byte
-type publicKey []byte
-type privateKey []byte
 type nonce []byte
 
 func deriveKeyAndNonce(opt *options) (key, nonce, error) {
@@ -95,9 +93,9 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 		}
 		context = nil
 	} else if opt.private != nil {
-		debug.dumpBinary("receiver public key", opt.public)
-
-		secret = computeSecret(opt.curve, opt.private, opt.dh)
+		if secret, err = opt.private.ECDH(opt.dh); err != nil {
+			return nil, nil, err
+		}
 		context = newContext(opt)
 	} else if opt.keyID != nil {
 		secret = opt.keyMap(opt.keyID)
@@ -140,7 +138,11 @@ func extractSecret(opt *options) ([]byte, error) {
 		return nil, errors.New("no authentication secret for webpush")
 	}
 
-	secret := computeSecret(opt.curve, opt.private, opt.dh)
+	var secret []byte
+	var err error
+	if secret, err = opt.private.ECDH(opt.dh); err != nil {
+		return nil, err
+	}
 	sp, rp := getKeys(opt)
 	authInfo := append(append(webPushInfo, rp...), sp...)
 
@@ -149,7 +151,7 @@ func extractSecret(opt *options) ([]byte, error) {
 	debug.dumpBinary("hkdf info", authInfo)
 
 	newSecret := make([]byte, secretLen)
-	_, err := hkdf.New(hashAlgorithm, secret, opt.authSecret, authInfo).Read(newSecret)
+	_, err = hkdf.New(hashAlgorithm, secret, opt.authSecret, authInfo).Read(newSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -195,27 +197,18 @@ func newContext(opt *options) []byte {
 	return nil
 }
 
-func computeSecret(curve elliptic.Curve, private privateKey, public publicKey) []byte {
-	x1, y1 := elliptic.Unmarshal(curve, public)
-
-	x2, _ := curve.ScalarMult(x1, y1, private)
-	r := make([]byte, secretLen)
-	return x2.FillBytes(r)
+func computeSecret(privateKey *ecdh.PrivateKey, publicKey *ecdh.PublicKey) ([]byte, error) {
+	return privateKey.ECDH(publicKey)
 }
 
-func randomKey(curve elliptic.Curve) (privateKey, publicKey, error) {
-	private, x, y, err := elliptic.GenerateKey(curve, rand.Reader)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	public := elliptic.Marshal(curve, x, y)
-	return private, public, nil
+func randomKey(curve ecdh.Curve) (*ecdh.PrivateKey, error) {
+	return curve.GenerateKey(rand.Reader)
 }
 
 func getKeys(opt *options) (sp []byte, rp []byte) {
+	publicKey := opt.private.PublicKey()
 	if opt.mode == decrypt {
-		return opt.dh, opt.public
+		return opt.dh.Bytes(), publicKey.Bytes()
 	}
-	return opt.public, opt.dh
+	return publicKey.Bytes(), opt.dh.Bytes()
 }

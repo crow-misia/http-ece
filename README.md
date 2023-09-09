@@ -8,12 +8,20 @@ a simple implementation of encrypted-content-encoding for Go.
 
 # Requirements
 
-Go 1.16 and beyond.
+Go 1.20 and beyond.
 
 # Install
 
-```
+```shell
 go get -u github.com/crow-misia/http-ece
+```
+
+# Build
+
+```shell
+go install golang.org/x/tools/cmd/stringer
+go generate
+go build
 ```
 
 # License
