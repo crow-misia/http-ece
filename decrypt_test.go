@@ -8,7 +8,6 @@
 package httpece
 
 import (
-	"crypto/ecdh"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
@@ -55,7 +54,7 @@ func TestDecryptWithAESGCM_2record(t *testing.T) {
 func TestDecryptWithAESGCM_WrongKey(t *testing.T) {
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d("mRGYnIzSJGeZnJ19lgQcfw==")
-	privateKey, _ := randomKey(ecdh.P256())
+	privateKey, _ := randomKey()
 	senderPublicKey := d("BGJXZ4zDA04RfSgTufdauZXcNYbe3oF/yEri5ETSuZLDx70gYi7w2ytak8U82H01P1HYnIvr2fEeX7NZpeHdnhM=")
 	content := d("vOjpVgZE4IYn/uEJKk3DzZ4X+Qr1dgSSUkuIzQE=")
 	plaintext, err := Decrypt(content,
@@ -106,7 +105,7 @@ func TestDecryptWithAES128GCM(t *testing.T) {
 
 func TestDecryptWithAES128GCM_WrongKey(t *testing.T) {
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
-	privateKey, _ := randomKey(ecdh.P256())
+	privateKey, _ := randomKey()
 	senderPublicKey := d("BGJXZ4zDA04RfSgTufdauZXcNYbe3oF/yEri5ETSuZLDx70gYi7w2ytak8U82H01P1HYnIvr2fEeX7NZpeHdnhM=")
 	content := d("mRGYnIzSJGeZnJ19lgQcfwAAEABBBGJXZ4zDA04RfSgTufdauZXcNYbe3oF/yEri5ETSuZLDx70gYi7w2ytak8U82H01P1HYnIvr2fEeX7NZpeHdnhPF+Ah4eiBMGQcXDvtjM/2s1KUn64dsYvM2ljQ1")
 	plaintext, err := Decrypt(content,

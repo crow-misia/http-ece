@@ -16,7 +16,7 @@ import (
 
 func TestUint16ToBytes(t *testing.T) {
 	f := func(v ...byte) {
-		assert.Equal(t, v, uint16ToBytes(int(binary.BigEndian.Uint16(v))))
+		assert.Equal(t, v, uint16ToBytes(binary.BigEndian.Uint16(v)))
 	}
 
 	f(0x00, 0x01)
@@ -26,7 +26,7 @@ func TestUint16ToBytes(t *testing.T) {
 
 func TestUint32ToBytes(t *testing.T) {
 	f := func(v ...byte) {
-		assert.Equal(t, v, uint32ToBytes(int(binary.BigEndian.Uint32(v))))
+		assert.Equal(t, v, uint32ToBytes(binary.BigEndian.Uint32(v)))
 	}
 
 	f(0x00, 0x00, 0x00, 0x01)

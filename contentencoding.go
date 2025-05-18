@@ -7,24 +7,22 @@
 
 package httpece
 
-//go:generate stringer -type=ContentEncoding
-
 // ContentEncoding is crypto data encoding
-type ContentEncoding int
+type ContentEncoding string
 
 const (
-	_ ContentEncoding = iota
-	AES128GCM
-	AESGCM
+	AES128GCM ContentEncoding = "aes128gcm"
+	AESGCM    ContentEncoding = "aesgcm"
 )
 
 // Padding returns crypto data padding size.
-func (i ContentEncoding) Padding() int {
+func (i ContentEncoding) Padding() uint32 {
 	switch i {
 	case AES128GCM:
 		return 1
 	case AESGCM:
 		return 2
+	default:
+		return 0
 	}
-	return 0
 }
