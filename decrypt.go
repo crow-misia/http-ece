@@ -26,8 +26,8 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 	content = readHeader(opt, content)
 
 	// Check Record Size
-	if opt.rs < sizeRecordMin || opt.rs > sizeRecordMax {
-		return nil, fmt.Errorf("invalid record size: %d", opt.rs)
+	if opt.recordSize < recordSizeMin || opt.recordSize > recordSizeMax {
+		return nil, fmt.Errorf("invalid record size: %d", opt.recordSize)
 	}
 
 	debug.dumpBinary("sender public key", opt.dh)
@@ -45,12 +45,12 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 	}
 
 	// Calculate chunkSize.
-	chunkSize := opt.rs
-	start := 0
-	counter := 0
-	contentLen := len(content)
+	chunkSize := opt.recordSize
+	start := uint32(0)
+	counter := uint32(0)
+	contentLen := uint32(len(content))
 	if opt.encoding != AES128GCM {
-		chunkSize += gcm.Overhead()
+		chunkSize += uint32(gcm.Overhead())
 	}
 
 	// Decrypt records.
@@ -77,11 +77,11 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 
 func readHeader(opt *options, content []byte) []byte {
 	if opt.encoding == AES128GCM {
-		baseOffset := keyLen + 4
+		baseOffset := keyLen + recodeSizeLen
 		idLen := int(content[baseOffset])
 
 		opt.salt = content[0:keyLen]
-		opt.rs = int(binary.BigEndian.Uint32(content[keyLen:baseOffset]))
+		opt.recordSize = binary.BigEndian.Uint32(content[keyLen:baseOffset])
 		baseOffset++
 		opt.keyID = content[baseOffset : baseOffset+idLen]
 
@@ -100,6 +100,6 @@ func decryptRecord(opt *options, gcm cipher.AEAD, nonce []byte, content []byte) 
 	case AESGCM:
 		return result[opt.encoding.Padding():], nil
 	default:
-		return result[:len(result)-opt.encoding.Padding()], nil
+		return result[:uint32(len(result))-opt.encoding.Padding()], nil
 	}
 }

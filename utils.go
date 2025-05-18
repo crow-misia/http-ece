@@ -8,7 +8,6 @@
 package httpece
 
 import (
-	"crypto/ecdh"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/binary"
@@ -27,11 +26,10 @@ func (d debugT) dumpBinary(base string, data []byte) {
 
 func parseOptions(mode mode, opts []Option) (*options, error) {
 	opt := &options{
-		mode:     mode,
-		curve:    ecdh.P256(),
-		encoding: AES128GCM,
-		rs:       sizeRecordDefault,
-		keyLabel: curveAlgorithm,
+		mode:       mode,
+		encoding:   AES128GCM,
+		recordSize: recordSizeDefault,
+		keyLabel:   curveAlgorithm,
 	}
 
 	for _, o := range opts {
@@ -45,21 +43,21 @@ func parseOptions(mode mode, opts []Option) (*options, error) {
 	return opt, nil
 }
 
-func uint16ToBytes(i int) []byte {
+func uint16ToBytes(i uint16) []byte {
 	x := make([]byte, 2)
-	binary.BigEndian.PutUint16(x, uint16(i))
+	binary.BigEndian.PutUint16(x, i)
 	return x
 }
 
-func uint32ToBytes(i int) []byte {
+func uint32ToBytes(i uint32) []byte {
 	x := make([]byte, 4)
-	binary.BigEndian.PutUint32(x, uint32(i))
+	binary.BigEndian.PutUint32(x, i)
 	return x
 }
 
-func generateNonce(baseNonce []byte, counter int) []byte {
+func generateNonce(baseNonce []byte, counter uint32) []byte {
 	x := make([]byte, nonceLen)
-	binary.BigEndian.PutUint32(x[8:], uint32(counter))
+	binary.BigEndian.PutUint32(x[8:], counter)
 	xor12(x, baseNonce, x)
 	return x
 }

@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/hkdf"
+	"io"
 )
 
 type key []byte
@@ -44,7 +45,7 @@ func deriveKeyAndNonce(opt *options) (key, nonce, error) {
 		nonceInfo = buildInfo(nonceBaseInfo, nil)
 		break
 	default:
-		return nil, nil, fmt.Errorf("must include a Salt parameter for %s", opt.encoding.String())
+		return nil, nil, fmt.Errorf("must include a Salt parameter for %s", opt.encoding)
 	}
 
 	debug.dumpBinary("info aesgcm", keyInfo)
@@ -118,7 +119,7 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 	debug.dumpBinary("hkdf info", authInfo)
 
 	authSecret := make([]byte, secretLen)
-	_, err = hkdf.New(hashAlgorithm, secret, opt.authSecret, authInfo).Read(authSecret)
+	_, err = io.ReadFull(hkdf.New(hashAlgorithm, secret, opt.authSecret, authInfo), authSecret)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -170,34 +171,35 @@ func buildInfo(base []byte, context []byte) []byte {
 }
 
 func newContext(opt *options) []byte {
-	if opt.encoding == AESGCM {
-		// The context format is:
-		// KeyLabel || 0x00 ||
-		// length(receiverPublicKey) || receiverPublicKey ||
-		// length(senderPublicKey) || senderPublicKey
-		// The lengths are 16-bit, Big Endian, unsigned integers so take 2 bytes each.
-		keyLabelLen := len(opt.keyLabel)
-
-		sp, rp := getKeys(opt)
-		rplen := len(rp)
-		rplenbuf := uint16ToBytes(rplen)
-
-		splen := len(sp)
-		splenbuf := uint16ToBytes(splen)
-
-		ctx := make([]byte, keyLabelLen+1+2+rplen+2+splen)
-		copy(ctx, opt.keyLabel)
-		ctx[keyLabelLen] = 0x00
-		copy(ctx[keyLabelLen+1:], rplenbuf)
-		copy(ctx[keyLabelLen+3:], rp)
-		copy(ctx[keyLabelLen+3+rplen:], splenbuf)
-		copy(ctx[keyLabelLen+3+rplen+2:], sp)
-		return ctx
+	if opt.encoding != AESGCM {
+		return nil
 	}
-	return nil
+
+	// The context format is:
+	// KeyLabel || 0x00 ||
+	// length(receiverPublicKey) || receiverPublicKey ||
+	// length(senderPublicKey) || senderPublicKey
+	// The lengths are 16-bit, Big Endian, unsigned integers so take 2 bytes each.
+	keyLabelLen := len(opt.keyLabel)
+
+	sp, rp := getKeys(opt)
+	rplen := len(rp)
+	rplenbuf := uint16ToBytes(uint16(rplen))
+
+	splen := len(sp)
+	splenbuf := uint16ToBytes(uint16(splen))
+
+	ctx := make([]byte, keyLabelLen+1+2+rplen+2+splen)
+	copy(ctx, opt.keyLabel)
+	ctx[keyLabelLen] = 0x00
+	copy(ctx[keyLabelLen+1:], rplenbuf)
+	copy(ctx[keyLabelLen+3:], rp)
+	copy(ctx[keyLabelLen+3+rplen:], splenbuf)
+	copy(ctx[keyLabelLen+3+rplen+2:], sp)
+	return ctx
 }
 
-func randomKey(curve ecdh.Curve) (*ecdh.PrivateKey, error) {
+func randomKey() (*ecdh.PrivateKey, error) {
 	return curve.GenerateKey(rand.Reader)
 }
 
@@ -210,7 +212,7 @@ func getKeys(opt *options) (sp, rp []byte) {
 
 func getSecret(opt *options) (secret []byte, err error) {
 	var dh *ecdh.PublicKey
-	if dh, err = opt.curve.NewPublicKey(opt.dh); err != nil {
+	if dh, err = curve.NewPublicKey(opt.dh); err != nil {
 		return nil, err
 	}
 	return opt.privateKey.ECDH(dh)

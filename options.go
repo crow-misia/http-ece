@@ -9,14 +9,13 @@ package httpece
 
 import (
 	"crypto/ecdh"
-	"crypto/rand"
 )
 
 type options struct {
 	mode       mode                // Encrypt / Decrypt Mode
 	curve      ecdh.Curve          // Curve Algorithm
 	encoding   ContentEncoding     // Content Encoding
-	rs         int                 // Record Size
+	recordSize uint32              // Record Size
 	salt       []byte              // Encryption salt
 	key        []byte              // Encryption key data
 	authSecret []byte              // Auth Secret
@@ -34,13 +33,13 @@ func (o *options) initialize() error {
 	var privateKey *ecdh.PrivateKey
 	var err error
 	if o.private == nil {
-		if privateKey, err = o.curve.GenerateKey(rand.Reader); err != nil {
+		if privateKey, err = randomKey(); err != nil {
 			return err
 		}
 		o.privateKey = privateKey
 		o.private = privateKey.Bytes()
 	} else {
-		if privateKey, err = o.curve.NewPrivateKey(o.private); err != nil {
+		if privateKey, err = curve.NewPrivateKey(o.private); err != nil {
 			return err
 		}
 		o.privateKey = privateKey
@@ -83,7 +82,7 @@ func WithAuthSecret(v []byte) Option {
 
 func WithRecordSize(v uint32) Option {
 	return func(opts *options) {
-		opts.rs = int(v)
+		opts.recordSize = v
 	}
 }
 

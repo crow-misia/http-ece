@@ -24,8 +24,8 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 	}
 
 	// Check Record Size
-	if opt.rs < sizeRecordMin || opt.rs > sizeRecordMax {
-		return nil, fmt.Errorf("invalid record size: %d", opt.rs)
+	if opt.recordSize < recordSizeMin || opt.recordSize > recordSizeMax {
+		return nil, fmt.Errorf("invalid record size: %d", opt.recordSize)
 	}
 
 	debug.dumpBinary("receiver public key", opt.dh)
@@ -60,21 +60,18 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 	// Check Record Size
 	overhead := opt.encoding.Padding()
 	if opt.encoding == AES128GCM {
-		overhead += gcm.Overhead()
+		overhead += uint32(gcm.Overhead())
 	}
-	if opt.rs <= overhead {
+	if opt.recordSize <= overhead {
 		return nil, fmt.Errorf("the rs parameter has to be greater than %d", overhead)
 	}
 
 	// Calculate chunkSize.
-	chunkSize := opt.rs
-	start := 0
-	counter := 0
-	plaintextLen := len(plaintext)
-	chunkSize -= opt.encoding.Padding()
-	if opt.encoding == AES128GCM {
-		chunkSize -= gcm.Overhead()
-	}
+	chunkSize := opt.recordSize
+	start := uint32(0)
+	counter := uint32(0)
+	plaintextLen := uint32(len(plaintext))
+	chunkSize -= overhead
 
 	results := make([][]byte, 1+(plaintextLen+chunkSize-1)/chunkSize)
 	// Create header.
@@ -116,7 +113,7 @@ func encryptRecord(opt *options, gcm cipher.AEAD, nonce []byte, plaintext []byte
 }
 
 func appendPad(plaintext []byte, encoding ContentEncoding, last bool) []byte {
-	plaintextLen := len(plaintext)
+	plaintextLen := uint32(len(plaintext))
 	result := make([]byte, plaintextLen+encoding.Padding())
 
 	switch encoding {
@@ -145,7 +142,7 @@ func writeHeader(opt *options, results [][]byte) ([][]byte, error) {
 		saltLen := len(opt.salt)
 		buffer := make([]byte, saltLen+4+1+keyIDLen)
 		copy(buffer, opt.salt)
-		copy(buffer[saltLen:], uint32ToBytes(opt.rs))
+		copy(buffer[saltLen:], uint32ToBytes(opt.recordSize))
 		buffer[saltLen+4] = uint8(keyIDLen)
 		copy(buffer[saltLen+5:], opt.keyID)
 		results = append(results, buffer)

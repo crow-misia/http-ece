@@ -8,17 +8,20 @@
 package httpece
 
 import (
+	"crypto/ecdh"
 	"crypto/sha256"
+	"math"
 )
 
 const (
-	sizeRecordDefault = 4096
-	sizeRecordMin     = 3
-	sizeRecordMax     = 2147483647
-	keyIDLenMax       = 255
+	recordSizeDefault = 4096
+	recordSizeMin     = 3
+	recordSizeMax     = math.MaxInt32
+	keyIDLenMax       = math.MaxUint8
 	keyLen            = 16
+	recodeSizeLen     = 4
 	nonceLen          = 12
-	secretLen         = 32
+	secretLen         = sha256.Size
 )
 
 var (
@@ -29,4 +32,5 @@ var (
 	webPushInfo    = []byte("WebPush: info\x00")
 	curveAlgorithm = []byte("P-256")
 	hashAlgorithm  = sha256.New
+	curve          = ecdh.P256()
 )

@@ -8,19 +8,18 @@
 package httpece
 
 import (
-	"crypto/ecdh"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestRandomKey(t *testing.T) {
-	private, err := randomKey(ecdh.P256())
+	private, err := randomKey()
 	assert.Nil(t, err)
 	public := private.PublicKey()
 	assert.Equal(t, 32, len(private.Bytes()))
 	assert.Equal(t, 65, len(public.Bytes()))
 
-	private2, err2 := randomKey(ecdh.P256())
+	private2, err2 := randomKey()
 	assert.Nil(t, err2)
 	public2 := private2.PublicKey()
 	assert.Equal(t, 32, len(private2.Bytes()))
