@@ -104,7 +104,7 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 		start = end
 		counter++
 	}
-	return resultsJoin(results), nil
+	return join(results), nil
 }
 
 func encryptRecord(opt *options, gcm cipher.AEAD, nonce []byte, plaintext []byte, last bool) []byte {
@@ -145,8 +145,7 @@ func writeHeader(opt *options, results [][]byte) ([][]byte, error) {
 		copy(buffer[saltLen:], uint32ToBytes(opt.recordSize))
 		buffer[saltLen+4] = uint8(keyIDLen)
 		copy(buffer[saltLen+5:], opt.keyID)
-		results = append(results, buffer)
-		return results, nil
+		return append(results, buffer), nil
 	default:
 		// No header on other versions
 		return results, nil

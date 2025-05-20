@@ -14,6 +14,8 @@ import (
 	"log"
 )
 
+const maxInt = int(^uint(0) >> 1)
+
 var debug = debugT(false)
 
 type debugT bool
@@ -81,13 +83,19 @@ func xor12(dst []byte, a []byte, b []byte) {
 	dst[11] = a[11] ^ b[11]
 }
 
-func resultsJoin(s [][]byte) []byte {
+func join(s [][]byte) []byte {
+	if len(s) == 0 {
+		return []byte{}
+	}
 	if len(s) == 1 {
-		return s[0]
+		return append([]byte(nil), s[0]...)
 	}
 
-	n := 0
+	var n int
 	for _, v := range s {
+		if len(v) > maxInt-n {
+			panic("join output length overflow")
+		}
 		n += len(v)
 	}
 
