@@ -50,7 +50,6 @@ func deriveKeyAndNonce(opt *options) (key, nonce, error) {
 
 	debug.dumpBinary("info aesgcm", keyInfo)
 	debug.dumpBinary("info nonce", nonceInfo)
-
 	debug.dumpBinary("hkdf secret", secret)
 	debug.dumpBinary("hkdf salt", opt.salt)
 
@@ -60,7 +59,7 @@ func deriveKeyAndNonce(opt *options) (key, nonce, error) {
 	debug.dumpBinary("hkdf info", keyInfo)
 
 	key := make([]byte, keyLen)
-	_, err = hkdf.Expand(hashAlgorithm, prk, keyInfo).Read(key)
+	_, err = io.ReadFull(hkdf.Expand(hashAlgorithm, prk, keyInfo), key)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -70,7 +69,7 @@ func deriveKeyAndNonce(opt *options) (key, nonce, error) {
 	debug.dumpBinary("hkdf info", nonceInfo)
 
 	nonce := make([]byte, nonceLen)
-	if _, err = hkdf.Expand(hashAlgorithm, prk, nonceInfo).Read(nonce); err != nil {
+	if _, err = io.ReadFull(hkdf.Expand(hashAlgorithm, prk, nonceInfo), nonce); err != nil {
 		return nil, nil, err
 	}
 	debug.dumpBinary("base nonce", nonce)
@@ -152,7 +151,7 @@ func extractSecret(opt *options) ([]byte, error) {
 	debug.dumpBinary("hkdf info", authInfo)
 
 	newSecret := make([]byte, secretLen)
-	_, err = hkdf.New(hashAlgorithm, secret, opt.authSecret, authInfo).Read(newSecret)
+	_, err = io.ReadFull(hkdf.New(hashAlgorithm, secret, opt.authSecret, authInfo),newSecret)
 	if err != nil {
 		return nil, err
 	}

@@ -8,6 +8,7 @@
 package httpece
 
 import (
+	"crypto/aes"
 	"crypto/ecdh"
 	"crypto/sha256"
 	"math"
@@ -18,7 +19,7 @@ const (
 	recordSizeMin     = 3
 	recordSizeMax     = math.MaxInt32
 	keyIDLenMax       = math.MaxUint8
-	keyLen            = 16
+	keyLen            = aes.BlockSize
 	recodeSizeLen     = 4
 	nonceLen          = 12
 	secretLen         = sha256.Size

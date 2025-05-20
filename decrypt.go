@@ -72,13 +72,13 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 		start = end
 		counter++
 	}
-	return resultsJoin(results), nil
+	return join(results), nil
 }
 
 func readHeader(opt *options, content []byte) []byte {
 	if opt.encoding == AES128GCM {
-		baseOffset := keyLen + recodeSizeLen
-		idLen := int(content[baseOffset])
+		baseOffset := uint32(keyLen + recodeSizeLen)
+		idLen := uint32(content[baseOffset])
 
 		opt.salt = content[0:keyLen]
 		opt.recordSize = binary.BigEndian.Uint32(content[keyLen:baseOffset])

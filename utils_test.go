@@ -56,10 +56,10 @@ func TestGenerateNonce(t *testing.T) {
 	assert.Equal(t, expect, generateNonce(tmp, 0xffffffff))
 }
 
-func TestResultsJoin(t *testing.T) {
-	assert.Equal(t, []byte{0x01}, resultsJoin([][]byte{{0x01}}))
-	assert.Equal(t, []byte{0x01, 0x02}, resultsJoin([][]byte{{0x01}, {0x02}}))
-	assert.Equal(t, []byte{0x01, 0x02, 0x03}, resultsJoin([][]byte{{0x01}, {0x02}, {0x03}}))
+func TestJoin(t *testing.T) {
+	assert.Equal(t, []byte{0x01}, join([][]byte{{0x01}}))
+	assert.Equal(t, []byte{0x01, 0x02}, join([][]byte{{0x01}, {0x02}}))
+	assert.Equal(t, []byte{0x01, 0x02, 0x03}, join([][]byte{{0x01}, {0x02}, {0x03}}))
 }
 
 func TestRandomSalt(t *testing.T) {
