@@ -94,6 +94,16 @@ func WithKey(v []byte) Option {
 	}
 }
 
+func WithKeyId(v []byte) Option {
+	return func(opts *options) error {
+		if len(v) > keyIdLenMax {
+			return ErrKeyIdTooLong
+		}
+		opts.keyId = v
+		return nil
+	}
+}
+
 func WithKeyLabel(v []byte) Option {
 	return func(opts *options) error {
 		opts.keyLabel = v
