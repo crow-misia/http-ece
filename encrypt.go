@@ -29,7 +29,7 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 	}
 
 	debug.dumpBinary("receiver public key", opt.dh)
-	debug.dumpBinary("sender private key", opt.private)
+	debug.dumpBinary("sender private key", opt.privateKey.Bytes())
 
 	// Generate salt
 	saltLen := len(opt.salt)
@@ -42,8 +42,8 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 	}
 
 	// Save the DH public key in the header unless keyId is set.
-	if opt.encoding == AES128GCM && len(opt.keyID) == 0 {
-		opt.keyID = opt.public
+	if opt.encoding == AES128GCM && len(opt.keyId) == 0 {
+		opt.keyId = opt.publicKey.Bytes()
 	}
 
 	// Derive key and nonce.
@@ -134,17 +134,17 @@ func appendPad(plaintext []byte, encoding ContentEncoding, last bool) []byte {
 func writeHeader(opt *options, results [][]byte) ([][]byte, error) {
 	switch opt.encoding {
 	case AES128GCM:
-		keyIDLen := len(opt.keyID)
-		if keyIDLen > keyIDLenMax {
+		keyIdLen := len(opt.keyId)
+		if keyIdLen > keyIdLenMax {
 			return nil, errors.New("keyId is too large")
 		}
 
 		saltLen := len(opt.salt)
-		buffer := make([]byte, saltLen+4+1+keyIDLen)
+		buffer := make([]byte, saltLen+4+1+keyIdLen)
 		copy(buffer, opt.salt)
 		copy(buffer[saltLen:], uint32ToBytes(opt.recordSize))
-		buffer[saltLen+4] = uint8(keyIDLen)
-		copy(buffer[saltLen+5:], opt.keyID)
+		buffer[saltLen+4] = uint8(keyIdLen)
+		copy(buffer[saltLen+5:], opt.keyId)
 		return append(results, buffer), nil
 	default:
 		// No header on other versions

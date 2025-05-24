@@ -18,7 +18,7 @@ const (
 	recordSizeDefault = 4096
 	recordSizeMin     = 3
 	recordSizeMax     = math.MaxInt32
-	keyIDLenMax       = math.MaxUint8
+	keyIdLenMax       = math.MaxUint8
 	keyLen            = aes.BlockSize
 	recodeSizeLen     = 4
 	nonceLen          = 12

@@ -30,9 +30,6 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 		return nil, fmt.Errorf("invalid record size: %d", opt.recordSize)
 	}
 
-	debug.dumpBinary("sender public key", opt.dh)
-	debug.dumpBinary("receiver private key", opt.private)
-
 	// Derive key and nonce.
 	key, baseNonce, err := deriveKeyAndNonce(opt)
 	if err != nil {
@@ -83,7 +80,7 @@ func readHeader(opt *options, content []byte) []byte {
 		opt.salt = content[0:keyLen]
 		opt.recordSize = binary.BigEndian.Uint32(content[keyLen:baseOffset])
 		baseOffset++
-		opt.keyID = content[baseOffset : baseOffset+idLen]
+		opt.keyId = content[baseOffset : baseOffset+idLen]
 
 		return content[baseOffset+idLen:]
 	}
