@@ -87,6 +87,28 @@ func TestDecryptWithAESGCM_NoAuthSecret(t *testing.T) {
 }
 
 func TestDecryptWithAES128GCM(t *testing.T) {
+	authSecret := d("jas+adg6e7b0fpAjbuKJ5g==")
+	senderPublicKey := d("BMVGtV3h5zCXAMmX7b3cbUcnMAtJzzK/Q1Gt3RuV0ogDmfx4LUNEmt80zRHLdrsAVcTYGg2Z1TIP4oUQDix41CY=")
+	privateKey := d("bZV1Gqn0ogmzONBaroOTIY7/TesCPu9aIc/A2N1Iz4g=")
+
+	enc, err := Encrypt([]byte("test"),
+		WithEncoding(AES128GCM),
+		WithAuthSecret(authSecret),
+		WithDh(senderPublicKey),
+	)
+
+	plaintext, err := Decrypt(enc,
+		WithEncoding(AES128GCM),
+		WithAuthSecret(authSecret),
+		WithPrivate(privateKey),
+	)
+
+	if assert.Nil(t, err) {
+		assert.Equalf(t, "test", string(plaintext), "")
+	}
+}
+
+func TestDecryptWithAES128GCMWithDH(t *testing.T) {
 	authSecret := d("9HcXsQe3xLMG/w2HsYKrOA==")
 	privateKey := d("yfSYB+/vCEoWklHCG7F99cQ1vRwemFYn87jZc8PHBwU=")
 	senderPublicKey := d("BGJXZ4zDA04RfSgTufdauZXcNYbe3oF/yEri5ETSuZLDx70gYi7w2ytak8U82H01P1HYnIvr2fEeX7NZpeHdnhM=")

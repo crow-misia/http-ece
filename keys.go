@@ -92,13 +92,12 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 			return nil, nil, fmt.Errorf("an explicit Key must be %d bytes", keyLen)
 		}
 		context = nil
-	} else if opt.private != nil {
-		if secret, err = getSecret(opt); err != nil {
+	} else if opt.dh != nil {
+		if secret, context, err = extractDH(opt); err != nil {
 			return nil, nil, err
 		}
-		context = newContext(opt)
-	} else if opt.keyID != nil {
-		secret = opt.keyMap(opt.keyID)
+	} else if opt.keyId != nil {
+		secret = opt.keyMap(opt.keyId)
 		context = nil
 	}
 
@@ -134,24 +133,44 @@ func extractSecret(opt *options) ([]byte, error) {
 		}
 		return opt.key, nil
 	}
+	if opt.privateKey == nil {
+		key := opt.keyMap(opt.keyId)
+		if key == nil {
+			return nil, fmt.Errorf("no saved key (keyId: \"%s\")", opt.keyId)
+		}
+		return key, nil
+	}
 	if opt.authSecret == nil {
 		return nil, errors.New("no authentication secret for webpush")
 	}
+	debug.dumpBinary("authsecret", opt.authSecret)
 
-	var secret []byte
-	var err error
-	if secret, err = getSecret(opt); err != nil {
+	var remotePublicKey, senderPublicKey, receiverPublicKey []byte
+	if opt.mode == encrypt {
+		senderPublicKey = opt.publicKey.Bytes()
+		receiverPublicKey = opt.dh
+		remotePublicKey = opt.dh
+	} else {
+		remotePublicKey = opt.keyId
+		senderPublicKey = opt.keyId
+		receiverPublicKey = opt.publicKey.Bytes()
+	}
+
+	debug.dumpBinary("remote public key", remotePublicKey)
+	debug.dumpBinary("sender public key", senderPublicKey)
+	debug.dumpBinary("receiver public key", receiverPublicKey)
+
+	authInfo := append(append(webPushInfo, receiverPublicKey...), senderPublicKey...)
+
+	secret, err := opt.getSecret(remotePublicKey)
+	if err != nil {
 		return nil, err
 	}
-	sp, rp := getKeys(opt)
-	authInfo := append(append(webPushInfo, rp...), sp...)
-
 	debug.dumpBinary("hkdf ikm", secret)
-	debug.dumpBinary("hkdf salt", opt.authSecret)
 	debug.dumpBinary("hkdf info", authInfo)
 
 	newSecret := make([]byte, secretLen)
-	_, err = io.ReadFull(hkdf.New(hashAlgorithm, secret, opt.authSecret, authInfo),newSecret)
+	_, err = io.ReadFull(hkdf.New(hashAlgorithm, secret, opt.authSecret, authInfo), newSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -169,9 +188,20 @@ func buildInfo(base []byte, context []byte) []byte {
 	return result
 }
 
-func newContext(opt *options) []byte {
-	if opt.encoding != AESGCM {
-		return nil
+func extractDH(opt *options) (secret []byte, context []byte, err error) {
+	secret, err = opt.getSecret(opt.dh)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	key := opt.privateKey
+	var senderPublicKey, receiverPublicKey []byte
+	if opt.mode == encrypt {
+		senderPublicKey = key.PublicKey().Bytes()
+		receiverPublicKey = opt.dh
+	} else {
+		senderPublicKey = opt.dh
+		receiverPublicKey = key.PublicKey().Bytes()
 	}
 
 	// The context format is:
@@ -181,38 +211,31 @@ func newContext(opt *options) []byte {
 	// The lengths are 16-bit, Big Endian, unsigned integers so take 2 bytes each.
 	keyLabelLen := len(opt.keyLabel)
 
-	sp, rp := getKeys(opt)
-	rplen := len(rp)
+	rplen := len(receiverPublicKey)
 	rplenbuf := uint16ToBytes(uint16(rplen))
 
-	splen := len(sp)
+	splen := len(senderPublicKey)
 	splenbuf := uint16ToBytes(uint16(splen))
 
 	ctx := make([]byte, keyLabelLen+1+2+rplen+2+splen)
 	copy(ctx, opt.keyLabel)
 	ctx[keyLabelLen] = 0x00
 	copy(ctx[keyLabelLen+1:], rplenbuf)
-	copy(ctx[keyLabelLen+3:], rp)
+	copy(ctx[keyLabelLen+3:], receiverPublicKey)
 	copy(ctx[keyLabelLen+3+rplen:], splenbuf)
-	copy(ctx[keyLabelLen+3+rplen+2:], sp)
-	return ctx
+	copy(ctx[keyLabelLen+3+rplen+2:], senderPublicKey)
+
+	return secret, ctx, nil
 }
 
 func randomKey() (*ecdh.PrivateKey, error) {
 	return curve.GenerateKey(rand.Reader)
 }
 
-func getKeys(opt *options) (sp, rp []byte) {
-	if opt.mode == decrypt {
-		return opt.dh, opt.public
-	}
-	return opt.public, opt.dh
-}
-
-func getSecret(opt *options) (secret []byte, err error) {
+func (o *options) getSecret(publicKey []byte) (secret []byte, err error) {
 	var dh *ecdh.PublicKey
-	if dh, err = curve.NewPublicKey(opt.dh); err != nil {
+	if dh, err = curve.NewPublicKey(publicKey); err != nil {
 		return nil, err
 	}
-	return opt.privateKey.ECDH(dh)
+	return o.privateKey.ECDH(dh)
 }

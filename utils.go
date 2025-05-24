@@ -32,6 +32,7 @@ func parseOptions(mode mode, opts []Option) (*options, error) {
 		encoding:   AES128GCM,
 		recordSize: recordSizeDefault,
 		keyLabel:   curveAlgorithm,
+		keyMap:     func(bytes []byte) []byte { return nil },
 	}
 
 	for _, o := range opts {
