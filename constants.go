@@ -11,18 +11,28 @@ import (
 	"crypto/aes"
 	"crypto/ecdh"
 	"crypto/sha256"
+	"errors"
 	"math"
 )
 
 const (
 	recordSizeDefault = 4096
-	recordSizeMin     = 3
 	recordSizeMax     = math.MaxInt32
 	keyIdLenMax       = math.MaxUint8
 	keyLen            = aes.BlockSize
 	recodeSizeLen     = 4
 	nonceLen          = 12
 	secretLen         = sha256.Size
+)
+
+var (
+	ErrKeyIdTooLong          = errors.New("keyId too long")
+	ErrTruncated             = errors.New("content truncated")
+	ErrInvalidPaddingLast    = errors.New("last block must start padding with 0x02")
+	ErrInvalidPaddingNonLast = errors.New("non-last block must start padding with 0x01")
+	ErrAllZeroPlaintext      = errors.New("all zero plaintext")
+	ErrUnableDetermineKey    = errors.New("unable to determine key")
+	ErrNoAuthSecret          = errors.New("no authentication secret for webpush")
 )
 
 var (

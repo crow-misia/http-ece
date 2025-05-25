@@ -12,7 +12,6 @@ import (
 	"crypto/cipher"
 	"crypto/ecdh"
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"golang.org/x/crypto/hkdf"
 	"io"
@@ -102,7 +101,7 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 	}
 
 	if secret == nil {
-		return nil, nil, errors.New("unable to determine key")
+		return nil, nil, ErrUnableDetermineKey
 	}
 
 	debug.dumpBinary("secret", secret)
@@ -141,7 +140,7 @@ func extractSecret(opt *options) ([]byte, error) {
 		return key, nil
 	}
 	if opt.authSecret == nil {
-		return nil, errors.New("no authentication secret for webpush")
+		return nil, ErrNoAuthSecret
 	}
 	debug.dumpBinary("authsecret", opt.authSecret)
 
