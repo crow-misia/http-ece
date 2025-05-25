@@ -25,11 +25,6 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 
 	content = readHeader(opt, content)
 
-	// Check Record Size
-	if opt.recordSize < recordSizeMin || opt.recordSize > recordSizeMax {
-		return nil, fmt.Errorf("invalid record size: %d", opt.recordSize)
-	}
-
 	// Derive key and nonce.
 	key, baseNonce, err := deriveKeyAndNonce(opt)
 	if err != nil {
@@ -41,26 +36,33 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 		return nil, err
 	}
 
-	// Calculate chunkSize.
-	chunkSize := opt.recordSize
-	start := uint32(0)
-	counter := uint32(0)
-	contentLen := uint32(len(content))
-	if opt.encoding != AES128GCM {
-		chunkSize += uint32(gcm.Overhead())
+	// Check Record Size
+	overhead := opt.encoding.overhead(gcm)
+	if opt.recordSize < overhead {
+		return nil, fmt.Errorf("recordSize has to be greater than %d", overhead)
 	}
 
+	// Calculate chunkSize.
+	var (
+		baseRecordSize = opt.recordSize - overhead
+		start          = uint32(0)
+		counter        = uint32(0)
+		contentLen     = uint32(len(content))
+		recordNum      = (contentLen + baseRecordSize - 1) / baseRecordSize
+	)
+
 	// Decrypt records.
-	results := make([][]byte, (contentLen+chunkSize-1)/chunkSize)
+	results := make([][]byte, 0, recordNum)
 	for start < contentLen {
-		end := start + chunkSize
-		if end > contentLen {
-			end = contentLen
+		end, err := opt.encoding.calculateCipherBlockEnd(gcm, start, contentLen, opt.recordSize)
+		if err != nil {
+			return nil, err
 		}
+		last := end == contentLen
 		// Generate nonce.
 		nonce := generateNonce(baseNonce, counter)
 		debug.dumpBinary("nonce", nonce)
-		r, err := decryptRecord(opt, gcm, nonce, content[start:end])
+		r, err := decryptRecord(opt, gcm, nonce, content[start:end], last)
 		if err != nil {
 			return nil, err
 		}
@@ -87,16 +89,11 @@ func readHeader(opt *options, content []byte) []byte {
 	return content
 }
 
-func decryptRecord(opt *options, gcm cipher.AEAD, nonce []byte, content []byte) ([]byte, error) {
+func decryptRecord(opt *options, gcm cipher.AEAD, nonce []byte, content []byte, last bool) ([]byte, error) {
 	result, err := gcm.Open(nil, nonce, content, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	switch opt.encoding {
-	case AESGCM:
-		return result[opt.encoding.Padding():], nil
-	default:
-		return result[:uint32(len(result))-opt.encoding.Padding()], nil
-	}
+	return opt.encoding.unpad(result, last)
 }

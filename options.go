@@ -9,6 +9,7 @@ package httpece
 
 import (
 	"crypto/ecdh"
+	"fmt"
 )
 
 type KeyMappingFn func([]byte) []byte
@@ -20,6 +21,7 @@ type options struct {
 	recordSize uint32           // Record Size
 	salt       []byte           // Encryption salt
 	key        []byte           // Encryption key data
+	pad        uint32           // Record padding size
 	authSecret []byte           // Auth Secret
 	keyId      []byte           // key Identifier
 	keyLabel   []byte           // Key Label
@@ -59,6 +61,13 @@ func WithSalt(v []byte) Option {
 	}
 }
 
+func WithPad(v uint32) Option {
+	return func(opts *options) error {
+		opts.pad = v
+		return nil
+	}
+}
+
 func WithPrivate(v []byte) Option {
 	return func(opts *options) (err error) {
 		opts.privateKey, err = curve.NewPrivateKey(v)
@@ -82,6 +91,9 @@ func WithAuthSecret(v []byte) Option {
 
 func WithRecordSize(v uint32) Option {
 	return func(opts *options) error {
+		if v > recordSizeMax {
+			return fmt.Errorf("invalid record size: %d", v)
+		}
 		opts.recordSize = v
 		return nil
 	}
