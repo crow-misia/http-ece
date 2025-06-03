@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 )
 
@@ -74,7 +75,8 @@ func TestRandomSalt(t *testing.T) {
 }
 
 func d(text string) []byte {
-	b, err := base64.StdEncoding.DecodeString(text)
+	normalized := strings.NewReplacer("-", "+", "_", "/", "=", "").Replace(text)
+	b, err := base64.RawStdEncoding.DecodeString(normalized)
 	if err != nil {
 		panic(err)
 	}
