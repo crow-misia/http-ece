@@ -171,3 +171,20 @@ func TestDecryptWithAES128GCMBigRecordSize(t *testing.T) {
 		assert.Equalf(t, strings.Repeat("a", 4081), string(plaintext), "")
 	}
 }
+
+func TestDecryptRFC8291Example(t *testing.T) {
+	authSecret := d("BTBZMqHH6r4Tts7J_aSIgg")
+	privateKey := d("q1dXpw3UpT5VOmu_cf_v6ih07Aems3njxI-JWgLcM94")
+	senderPublicKey := d("BP4z9KsN6nGRTbVYI_c7VJSPQTBtkgcy27mlmlMoZIIgDll6e3vCYLocInmYWAmS6TlzAC8wEqKK6PBru3jl7A8")
+	content := d("DGv6ra1nlYgDCS1FRnbzlwAAEABBBP4z9KsN6nGRTbVYI_c7VJSPQTBtkgcy27mlmlMoZIIgDll6e3vCYLocInmYWAmS6TlzAC8wEqKK6PBru3jl7A_yl95bQpu6cVPTpK4Mqgkf1CXztLVBSt2Ks3oZwbuwXPXLWyouBWLVWGNWQexSgSxsj_Qulcy4a-fN")
+	plaintext, err := Decrypt(content,
+		WithEncoding(AES128GCM),
+		WithAuthSecret(authSecret),
+		WithPrivate(privateKey),
+		WithDh(senderPublicKey),
+	)
+
+	if assert.Nil(t, err) {
+		assert.Equalf(t, "When I grow up, I want to be a watermelon", string(plaintext), "")
+	}
+}

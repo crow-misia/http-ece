@@ -23,6 +23,11 @@ go generate
 go build
 ```
 
+# Reference
+
+- [RFC 8188](https://datatracker.ietf.org/doc/html/rfc8188)
+- [RFC 8291](https://datatracker.ietf.org/doc/html/rfc8291)
+
 # License
 
 MIT License
