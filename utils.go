@@ -35,11 +35,14 @@ func parseOptions(mode mode, opts []Option) (*options, error) {
 		keyMap:     func(bytes []byte) []byte { return nil },
 	}
 
+	var err error
 	for _, o := range opts {
-		o(opt)
+		if err = o(opt); err != nil {
+			return nil, err
+		}
 	}
 
-	if err := opt.initialize(); err != nil {
+	if err = opt.initialize(); err != nil {
 		return nil, err
 	}
 
