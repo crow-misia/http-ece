@@ -53,7 +53,7 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 
 	// Check Record Size
 	overhead := opt.encoding.overhead(gcm)
-	if opt.recordSize < overhead {
+	if opt.recordSize <= overhead {
 		return nil, fmt.Errorf("recordSize has to be greater than %d", overhead)
 	}
 
