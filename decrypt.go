@@ -82,7 +82,7 @@ func readHeader(opt *options, content []byte) []byte {
 		opt.salt = content[0:keyLen]
 		opt.recordSize = binary.BigEndian.Uint32(content[keyLen:baseOffset])
 		baseOffset++
-		opt.keyId = content[baseOffset : baseOffset+idLen]
+		opt.keyID = content[baseOffset : baseOffset+idLen]
 
 		return content[baseOffset+idLen:]
 	}

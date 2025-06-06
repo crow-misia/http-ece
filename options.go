@@ -23,7 +23,7 @@ type options struct {
 	key        []byte           // Encryption key data
 	pad        uint32           // Record padding size
 	authSecret []byte           // Auth Secret
-	keyId      []byte           // key Identifier
+	keyID      []byte           // key Identifier
 	keyLabel   []byte           // Key Label
 	keyMap     KeyMappingFn     // Key Mapping Function
 	privateKey *ecdh.PrivateKey // DH Private key
@@ -106,12 +106,12 @@ func WithKey(v []byte) Option {
 	}
 }
 
-func WithKeyId(v []byte) Option {
+func WithKeyID(v []byte) Option {
 	return func(opts *options) error {
-		if len(v) > keyIdLenMax {
-			return ErrKeyIdTooLong
+		if len(v) > keyIDLenMax {
+			return ErrKeyIDTooLong
 		}
-		opts.keyId = v
+		opts.keyID = v
 		return nil
 	}
 }
