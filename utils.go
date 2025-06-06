@@ -16,7 +16,7 @@ import (
 
 const maxInt = int(^uint(0) >> 1)
 
-var debug = debugT(false)
+const debug = debugT(false)
 
 type debugT bool
 
