@@ -18,7 +18,7 @@ import (
 const (
 	recordSizeDefault = 4096
 	recordSizeMax     = math.MaxInt32
-	keyIdLenMax       = math.MaxUint8
+	keyIDLenMax       = math.MaxUint8
 	keyLen            = aes.BlockSize
 	recodeSizeLen     = 4
 	nonceLen          = 12
@@ -26,7 +26,7 @@ const (
 )
 
 var (
-	ErrKeyIdTooLong          = errors.New("keyId too long")
+	ErrKeyIDTooLong          = errors.New("keyID too long")
 	ErrTruncated             = errors.New("content truncated")
 	ErrInvalidPaddingLast    = errors.New("last block must start padding with 0x02")
 	ErrInvalidPaddingNonLast = errors.New("non-last block must start padding with 0x01")

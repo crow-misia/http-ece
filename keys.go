@@ -95,8 +95,8 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 		if secret, context, err = extractDH(opt); err != nil {
 			return nil, nil, err
 		}
-	} else if opt.keyId != nil {
-		secret = opt.keyMap(opt.keyId)
+	} else if opt.keyID != nil {
+		secret = opt.keyMap(opt.keyID)
 		context = nil
 	}
 
@@ -133,9 +133,9 @@ func extractSecret(opt *options) ([]byte, error) {
 		return opt.key, nil
 	}
 	if opt.privateKey == nil {
-		key := opt.keyMap(opt.keyId)
+		key := opt.keyMap(opt.keyID)
 		if key == nil {
-			return nil, fmt.Errorf("no saved key (keyId: \"%s\")", opt.keyId)
+			return nil, fmt.Errorf("no saved key (keyID: \"%s\")", opt.keyID)
 		}
 		return key, nil
 	}
@@ -150,8 +150,8 @@ func extractSecret(opt *options) ([]byte, error) {
 		receiverPublicKey = opt.dh
 		remotePublicKey = opt.dh
 	} else {
-		remotePublicKey = opt.keyId
-		senderPublicKey = opt.keyId
+		remotePublicKey = opt.keyID
+		senderPublicKey = opt.keyID
 		receiverPublicKey = opt.publicKey.Bytes()
 	}
 

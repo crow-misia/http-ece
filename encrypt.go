@@ -22,9 +22,9 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 		return nil, err
 	}
 
-	// Save the DH public key in the header unless keyId is set.
-	if opt.encoding == AES128GCM && len(opt.keyId) == 0 {
-		opt.keyId = opt.publicKey.Bytes()
+	// Save the DH public key in the header unless keyID is set.
+	if opt.encoding == AES128GCM && len(opt.keyID) == 0 {
+		opt.keyID = opt.publicKey.Bytes()
 	}
 
 	debug.dumpBinary("receiver public key", opt.dh)
@@ -101,13 +101,13 @@ func encryptRecord(opt *options, gcm cipher.AEAD, nonce, plaintext []byte, recor
 func writeHeader(opt *options, results [][]byte) ([][]byte, error) {
 	switch opt.encoding {
 	case AES128GCM:
-		keyIdLen := len(opt.keyId)
+		keyIDLen := len(opt.keyID)
 		saltLen := len(opt.salt)
-		buffer := make([]byte, saltLen+4+1+keyIdLen)
+		buffer := make([]byte, saltLen+4+1+keyIDLen)
 		copy(buffer, opt.salt)
 		copy(buffer[saltLen:], uint32ToBytes(opt.recordSize))
-		buffer[saltLen+4] = uint8(keyIdLen)
-		copy(buffer[saltLen+5:], opt.keyId)
+		buffer[saltLen+4] = uint8(keyIDLen)
+		copy(buffer[saltLen+5:], opt.keyID)
 		return append(results, buffer), nil
 	default:
 		// No header on other versions
