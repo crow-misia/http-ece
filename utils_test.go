@@ -74,11 +74,9 @@ func TestRandomSalt(t *testing.T) {
 	assert.NotEqual(t, salt, salt2)
 }
 
-func d(text string) []byte {
+func d(t assert.TestingT, text string) []byte {
 	normalized := strings.NewReplacer("-", "+", "_", "/", "=", "").Replace(text)
 	b, err := base64.RawStdEncoding.DecodeString(normalized)
-	if err != nil {
-		panic(err)
-	}
+	assert.Nil(t, err)
 	return b
 }
