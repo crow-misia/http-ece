@@ -11,17 +11,17 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/ecdh"
+	"crypto/hkdf"
 	"crypto/rand"
 	"fmt"
-	"golang.org/x/crypto/hkdf"
-	"io"
 )
 
 type key []byte
 type nonce []byte
 
 func deriveKeyAndNonce(opt *options) (key, nonce, error) {
-	var keyInfo, nonceInfo, secret, context []byte
+	var secret, context []byte
+	var keyInfo, nonceInfo string
 	var err error
 
 	switch opt.encoding {
@@ -47,28 +47,31 @@ func deriveKeyAndNonce(opt *options) (key, nonce, error) {
 		return nil, nil, fmt.Errorf("must include a Salt parameter for %s", opt.encoding)
 	}
 
-	debug.dumpBinary("info aesgcm", keyInfo)
-	debug.dumpBinary("info nonce", nonceInfo)
+	debug.dumpInfo("info aesgcm", keyInfo)
+	debug.dumpInfo("info nonce", nonceInfo)
 	debug.dumpBinary("hkdf secret", secret)
 	debug.dumpBinary("hkdf salt", opt.salt)
 
-	prk := hkdf.Extract(hashAlgorithm, secret, opt.salt)
+	prk, err := hkdf.Extract(hashAlgorithm, secret, opt.salt)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	debug.dumpBinary("hkdf prk", prk)
-	debug.dumpBinary("hkdf info", keyInfo)
+	debug.dumpInfo("hkdf info", keyInfo)
 
-	key := make([]byte, keyLen)
-	_, err = io.ReadFull(hkdf.Expand(hashAlgorithm, prk, keyInfo), key)
+	key, err := hkdf.Expand(hashAlgorithm, prk, keyInfo, keyLen)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	debug.dumpBinary("key", key)
 	debug.dumpBinary("hkdf prk", prk)
-	debug.dumpBinary("hkdf info", nonceInfo)
+	debug.dumpInfo("hkdf info", nonceInfo)
 
 	nonce := make([]byte, nonceLen)
-	if _, err = io.ReadFull(hkdf.Expand(hashAlgorithm, prk, nonceInfo), nonce); err != nil {
+	nonce, err = hkdf.Expand(hashAlgorithm, prk, nonceInfo, nonceLen)
+	if err != nil {
 		return nil, nil, err
 	}
 	debug.dumpBinary("base nonce", nonce)
@@ -113,10 +116,9 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 
 	debug.dumpBinary("hkdf secret", secret)
 	debug.dumpBinary("hkdf salt", opt.authSecret)
-	debug.dumpBinary("hkdf info", authInfo)
+	debug.dumpInfo("hkdf info", authInfo)
 
-	authSecret := make([]byte, secretLen)
-	_, err = io.ReadFull(hkdf.New(hashAlgorithm, secret, opt.authSecret, authInfo), authSecret)
+	authSecret, err := hkdf.Key(hashAlgorithm, secret, opt.authSecret, authInfo, secretLen)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -155,28 +157,27 @@ func extractSecret(opt *options) ([]byte, error) {
 		receiverPublicKey = opt.publicKey.Bytes()
 	}
 
-	debug.dumpBinary("remote public key", remotePublicKey)
-	debug.dumpBinary("sender public key", senderPublicKey)
-	debug.dumpBinary("receiver public key", receiverPublicKey)
+	debug.dumpBinary("remo pub key", remotePublicKey)
+	debug.dumpBinary("send pub key", senderPublicKey)
+	debug.dumpBinary("recv pub key", receiverPublicKey)
 
-	authInfo := append(append(webPushInfo, receiverPublicKey...), senderPublicKey...)
+	authInfo := string(append(append(webPushInfo, receiverPublicKey...), senderPublicKey...))
 
 	secret, err := opt.getSecret(remotePublicKey)
 	if err != nil {
 		return nil, err
 	}
 	debug.dumpBinary("hkdf ikm", secret)
-	debug.dumpBinary("hkdf info", authInfo)
+	debug.dumpInfo("hkdf info", authInfo)
 
-	newSecret := make([]byte, secretLen)
-	_, err = io.ReadFull(hkdf.New(hashAlgorithm, secret, opt.authSecret, authInfo), newSecret)
+	newSecret, err := hkdf.Key(hashAlgorithm, secret, opt.authSecret, authInfo, secretLen)
 	if err != nil {
 		return nil, err
 	}
 	return newSecret, nil
 }
 
-func buildInfo(base []byte, context []byte) []byte {
+func buildInfo(base []byte, context []byte) string {
 	baseLen := len(base)
 	contextLen := len(context)
 	result := make([]byte, 0, baseLen+contextLen)
@@ -184,7 +185,7 @@ func buildInfo(base []byte, context []byte) []byte {
 	if contextLen > 0 {
 		result = append(result, context...)
 	}
-	return result
+	return string(result)
 }
 
 func extractDH(opt *options) (secret []byte, context []byte, err error) {

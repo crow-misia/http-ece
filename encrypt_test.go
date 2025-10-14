@@ -9,9 +9,10 @@ package httpece
 
 import (
 	"encoding/base64"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEncryptWithAESGCM(t *testing.T) {

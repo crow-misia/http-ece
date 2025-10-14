@@ -26,6 +26,12 @@ func (d debugT) dumpBinary(base string, data []byte) {
 	}
 }
 
+func (d debugT) dumpInfo(base string, data string) {
+	if d {
+		log.Printf("%12s [%4d]: %s\n", base, len(data), base64.StdEncoding.EncodeToString([]byte(data)))
+	}
+}
+
 func parseOptions(mode mode, opts []Option) (*options, error) {
 	opt := &options{
 		mode:       mode,

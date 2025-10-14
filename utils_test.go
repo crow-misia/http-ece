@@ -10,9 +10,10 @@ package httpece
 import (
 	"encoding/base64"
 	"encoding/binary"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUint16ToBytes(t *testing.T) {
