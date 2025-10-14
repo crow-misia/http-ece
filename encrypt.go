@@ -27,8 +27,8 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 		opt.keyID = opt.publicKey.Bytes()
 	}
 
-	debug.dumpBinary("receiver public key", opt.dh)
-	debug.dumpBinary("sender private key", opt.privateKey.Bytes())
+	debug.dumpBinary("recv pub key", opt.dh)
+	debug.dumpBinary("send prv key", opt.privateKey.Bytes())
 
 	// Generate salt
 	saltLen := len(opt.salt)

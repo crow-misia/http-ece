@@ -157,9 +157,9 @@ func extractSecret(opt *options) ([]byte, error) {
 		receiverPublicKey = opt.publicKey.Bytes()
 	}
 
-	debug.dumpBinary("remote public key", remotePublicKey)
-	debug.dumpBinary("sender public key", senderPublicKey)
-	debug.dumpBinary("receiver public key", receiverPublicKey)
+	debug.dumpBinary("remo pub key", remotePublicKey)
+	debug.dumpBinary("send pub key", senderPublicKey)
+	debug.dumpBinary("recv pub key", receiverPublicKey)
 
 	authInfo := string(append(append(webPushInfo, receiverPublicKey...), senderPublicKey...))
 
