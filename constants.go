@@ -36,7 +36,7 @@ var (
 )
 
 var (
-	authInfo       = []byte("Content-Encoding: auth\x00")
+	authInfo       = "Content-Encoding: auth\x00"
 	aesgcmInfo     = []byte("Content-Encoding: aesgcm\x00")
 	aes128gcmInfo  = []byte("Content-Encoding: aes128gcm\x00")
 	nonceBaseInfo  = []byte("Content-Encoding: nonce\x00")
