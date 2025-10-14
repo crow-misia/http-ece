@@ -26,9 +26,9 @@ func (d debugT) dumpBinary(base string, data []byte) {
 	}
 }
 
-func (d debugT) dumpString(base string, data string) {
+func (d debugT) dumpInfo(base string, data string) {
 	if d {
-		log.Printf("%12s: %s\n", base, data)
+		log.Printf("%12s [%4d]: %s\n", base, len(data), base64.StdEncoding.EncodeToString([]byte(data)))
 	}
 }
 

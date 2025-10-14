@@ -47,8 +47,8 @@ func deriveKeyAndNonce(opt *options) (key, nonce, error) {
 		return nil, nil, fmt.Errorf("must include a Salt parameter for %s", opt.encoding)
 	}
 
-	debug.dumpString("info aesgcm", keyInfo)
-	debug.dumpString("info nonce", nonceInfo)
+	debug.dumpInfo("info aesgcm", keyInfo)
+	debug.dumpInfo("info nonce", nonceInfo)
 	debug.dumpBinary("hkdf secret", secret)
 	debug.dumpBinary("hkdf salt", opt.salt)
 
@@ -58,7 +58,7 @@ func deriveKeyAndNonce(opt *options) (key, nonce, error) {
 	}
 
 	debug.dumpBinary("hkdf prk", prk)
-	debug.dumpString("hkdf info", keyInfo)
+	debug.dumpInfo("hkdf info", keyInfo)
 
 	key, err := hkdf.Expand(hashAlgorithm, prk, keyInfo, keyLen)
 	if err != nil {
@@ -67,7 +67,7 @@ func deriveKeyAndNonce(opt *options) (key, nonce, error) {
 
 	debug.dumpBinary("key", key)
 	debug.dumpBinary("hkdf prk", prk)
-	debug.dumpString("hkdf info", nonceInfo)
+	debug.dumpInfo("hkdf info", nonceInfo)
 
 	nonce := make([]byte, nonceLen)
 	nonce, err = hkdf.Expand(hashAlgorithm, prk, nonceInfo, nonceLen)
@@ -116,7 +116,7 @@ func extractSecretAndContext(opt *options) (secret []byte, context []byte, err e
 
 	debug.dumpBinary("hkdf secret", secret)
 	debug.dumpBinary("hkdf salt", opt.authSecret)
-	debug.dumpString("hkdf info", authInfo)
+	debug.dumpInfo("hkdf info", authInfo)
 
 	authSecret, err := hkdf.Key(hashAlgorithm, secret, opt.authSecret, authInfo, secretLen)
 	if err != nil {
@@ -168,7 +168,7 @@ func extractSecret(opt *options) ([]byte, error) {
 		return nil, err
 	}
 	debug.dumpBinary("hkdf ikm", secret)
-	debug.dumpString("hkdf info", authInfo)
+	debug.dumpInfo("hkdf info", authInfo)
 
 	newSecret, err := hkdf.Key(hashAlgorithm, secret, opt.authSecret, authInfo, secretLen)
 	if err != nil {
