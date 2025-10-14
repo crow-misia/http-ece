@@ -69,8 +69,7 @@ func deriveKeyAndNonce(opt *options) (key, nonce, error) {
 	debug.dumpBinary("hkdf prk", prk)
 	debug.dumpInfo("hkdf info", nonceInfo)
 
-	nonce := make([]byte, nonceLen)
-	nonce, err = hkdf.Expand(hashAlgorithm, prk, nonceInfo, nonceLen)
+	nonce, err := hkdf.Expand(hashAlgorithm, prk, nonceInfo, nonceLen)
 	if err != nil {
 		return nil, nil, err
 	}
