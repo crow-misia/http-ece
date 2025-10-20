@@ -65,3 +65,11 @@ fabric.properties
 # Editor-based Rest Client
 .idea/httpRequests
 
+# Node.js
+node_modules/
+
+# Lefthook
+lefthook-local.*
+
+# mise
+mise.local.toml
