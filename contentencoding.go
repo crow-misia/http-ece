@@ -11,6 +11,7 @@ import (
 	"crypto/cipher"
 	"encoding/binary"
 	"fmt"
+	"math"
 )
 
 // ContentEncoding is crypto data encoding
@@ -22,7 +23,7 @@ const (
 )
 
 // Padding returns crypto data padding size.
-func (i ContentEncoding) Padding() uint32 {
+func (i ContentEncoding) Padding() int {
 	switch i {
 	case AES128GCM:
 		return 1
@@ -34,15 +35,15 @@ func (i ContentEncoding) Padding() uint32 {
 }
 
 // overhead return record overhead size
-func (i ContentEncoding) overhead(gcm cipher.AEAD) uint32 {
+func (i ContentEncoding) overhead(gcm cipher.AEAD) int {
 	overhead := i.Padding()
 	if i == AES128GCM {
-		overhead += uint32(gcm.Overhead())
+		overhead += gcm.Overhead()
 	}
 	return overhead
 }
 
-func (i ContentEncoding) calculateRecordPadSize(pad, baseRecordSize uint32) uint32 {
+func (i ContentEncoding) calculateRecordPadSize(pad, baseRecordSize int) int {
 	padSize := i.Padding()
 
 	// Pad so that at least one data byte is in a block.
@@ -57,9 +58,9 @@ func (i ContentEncoding) calculateRecordPadSize(pad, baseRecordSize uint32) uint
 	return recordPad
 }
 
-func (i ContentEncoding) calculateCipherBlockEnd(gcm cipher.AEAD, start, contentLen, recordSize uint32) (uint32, error) {
-	blockSize := recordSize
-	tagSize := uint32(gcm.Overhead())
+func (i ContentEncoding) calculateCipherBlockEnd(gcm cipher.AEAD, start, contentLen int, recordSize uint32) (int, error) {
+	blockSize := int(recordSize)
+	tagSize := gcm.Overhead()
 	if i != AES128GCM {
 		blockSize += tagSize
 	}
@@ -77,12 +78,15 @@ func (i ContentEncoding) calculateCipherBlockEnd(gcm cipher.AEAD, start, content
 }
 
 // appendPadding
-func (i ContentEncoding) appendPadding(plaintext []byte, pad uint32, last bool) []byte {
-	plaintextLen := uint32(len(plaintext))
+func (i ContentEncoding) appendPadding(plaintext []byte, pad int, last bool) ([]byte, error) {
+	plaintextLen := len(plaintext)
 	result := make([]byte, plaintextLen+i.Padding()+pad)
 
 	switch i {
 	case AESGCM:
+		if pad < 0 || pad > math.MaxUint16 {
+			return nil, fmt.Errorf("padding size %d overflows: exceeds uint16 limit", pad)
+		}
 		binary.BigEndian.PutUint16(result, uint16(pad))
 		copy(result[2+pad:], plaintext)
 	default:
@@ -93,7 +97,7 @@ func (i ContentEncoding) appendPadding(plaintext []byte, pad uint32, last bool) 
 			result[plaintextLen] = 0x01
 		}
 	}
-	return result
+	return result, nil
 }
 
 func (i ContentEncoding) unpad(plaintext []byte, last bool) ([]byte, error) {
@@ -116,24 +120,23 @@ func (i ContentEncoding) unpad(plaintext []byte, last bool) ([]byte, error) {
 		return nil, ErrAllZeroPlaintext
 	default:
 		padSize := i.Padding()
-		var pad uint32
 		switch padSize {
 		case 1:
-			pad = uint32(plaintext[0])
+			padSize += int(plaintext[0])
 		case 2:
-			pad = uint32(binary.BigEndian.Uint16(plaintext[:2]))
+			padSize += int(binary.BigEndian.Uint16(plaintext[:2]))
 		default:
 			return nil, fmt.Errorf("unknown padding size %d", padSize)
 		}
-		if pad+padSize > uint32(len(plaintext)) {
-			return nil, fmt.Errorf("padding exceeds block size: %d", pad)
+		if padSize > len(plaintext) {
+			return nil, fmt.Errorf("padding exceeds block size: %d", padSize)
 		}
-		return plaintext[pad+padSize:], nil
+		return plaintext[padSize:], nil
 	}
 }
 
 // isLastBlock returns true when last block
-func (i ContentEncoding) isLastBlock(pad, contentLen, blockEnd uint32) bool {
+func (i ContentEncoding) isLastBlock(pad, contentLen, blockEnd int) bool {
 	var last bool
 	switch i {
 	case AES128GCM:

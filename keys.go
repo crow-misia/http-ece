@@ -14,6 +14,7 @@ import (
 	"crypto/hkdf"
 	"crypto/rand"
 	"fmt"
+	"math"
 )
 
 type key []byte
@@ -33,7 +34,6 @@ func deriveKeyAndNonce(opt *options) (key, nonce, error) {
 		}
 		keyInfo = buildInfo(aesgcmInfo, context)
 		nonceInfo = buildInfo(nonceBaseInfo, context)
-		break
 	case AES128GCM:
 		// latest
 		secret, err = extractSecret(opt)
@@ -42,7 +42,6 @@ func deriveKeyAndNonce(opt *options) (key, nonce, error) {
 		}
 		keyInfo = buildInfo(aes128gcmInfo, nil)
 		nonceInfo = buildInfo(nonceBaseInfo, nil)
-		break
 	default:
 		return nil, nil, fmt.Errorf("must include a Salt parameter for %s", opt.encoding)
 	}
@@ -211,9 +210,15 @@ func extractDH(opt *options) (secret []byte, context []byte, err error) {
 	keyLabelLen := len(opt.keyLabel)
 
 	rplen := len(receiverPublicKey)
+	if rplen > math.MaxUint16 {
+		return nil, nil, fmt.Errorf("invalid receiver public key length %d", rplen)
+	}
 	rplenbuf := uint16ToBytes(uint16(rplen))
 
 	splen := len(senderPublicKey)
+	if splen > math.MaxUint16 {
+		return nil, nil, fmt.Errorf("invalid sender public key length %d", splen)
+	}
 	splenbuf := uint16ToBytes(uint16(splen))
 
 	ctx := make([]byte, keyLabelLen+1+2+rplen+2+splen)

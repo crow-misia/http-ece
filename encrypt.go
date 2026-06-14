@@ -10,6 +10,7 @@ package httpece
 import (
 	"crypto/cipher"
 	"fmt"
+	"math"
 )
 
 // Encrypt encrypts plaintext data.
@@ -53,17 +54,18 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 
 	// Check Record Size
 	overhead := opt.encoding.overhead(gcm)
-	if opt.recordSize <= overhead {
+	recordSize := int(opt.recordSize)
+	if recordSize <= overhead {
 		return nil, fmt.Errorf("recordSize has to be greater than %d", overhead)
 	}
 
 	var (
-		baseRecordSize = opt.recordSize - overhead
-		start          = uint32(0)
+		baseRecordSize = recordSize - overhead
+		start          = 0
 		counter        = uint32(0)
-		plaintextLen   = uint32(len(plaintext))
-		pad            = opt.pad
-		recordNum      = 1 + (plaintextLen+pad+baseRecordSize-1)/baseRecordSize
+		plaintextLen   = len(plaintext)
+		padSize        = opt.padSize
+		recordNum      = 1 + (plaintextLen+padSize+baseRecordSize-1)/baseRecordSize
 	)
 
 	results := make([][]byte, 0, recordNum)
@@ -76,15 +78,18 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 	// Encrypt records.
 	last := false
 	for !last {
-		recordPad := opt.encoding.calculateRecordPadSize(pad, baseRecordSize)
-		pad -= recordPad
+		recordPad := opt.encoding.calculateRecordPadSize(padSize, baseRecordSize)
+		padSize -= recordPad
 		end := start + baseRecordSize - recordPad
-		last = opt.encoding.isLastBlock(pad, plaintextLen, end)
+		last = opt.encoding.isLastBlock(padSize, plaintextLen, end)
 		end = min(end, plaintextLen)
 		// Generate nonce.
 		nonce := generateNonce(baseNonce, counter)
 		debug.dumpBinary("nonce", nonce)
-		r := encryptRecord(opt, gcm, nonce, plaintext[start:end], recordPad, last)
+		r, err := encryptRecord(opt, gcm, nonce, plaintext[start:end], recordPad, last)
+		if err != nil {
+			return nil, err
+		}
 		results = append(results, r)
 		debug.dumpBinary("result", r)
 		start = end
@@ -93,16 +98,25 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 	return join(results), nil
 }
 
-func encryptRecord(opt *options, gcm cipher.AEAD, nonce, plaintext []byte, recordPad uint32, last bool) []byte {
-	plaintextWithPadding := opt.encoding.appendPadding(plaintext, recordPad, last)
-	return gcm.Seal(nil, nonce, plaintextWithPadding, nil)
+func encryptRecord(opt *options, gcm cipher.AEAD, nonce, plaintext []byte, recordPad int, last bool) ([]byte, error) {
+	plaintextWithPadding, err := opt.encoding.appendPadding(plaintext, recordPad, last)
+	if err != nil {
+		return nil, err
+	}
+	return gcm.Seal(nil, nonce, plaintextWithPadding, nil), nil
 }
 
 func writeHeader(opt *options, results [][]byte) ([][]byte, error) {
 	switch opt.encoding {
 	case AES128GCM:
 		keyIDLen := len(opt.keyID)
+		if keyIDLen > math.MaxUint8 {
+			return nil, fmt.Errorf("invalid keyID length %d", keyIDLen)
+		}
 		saltLen := len(opt.salt)
+		if saltLen > math.MaxUint8 {
+			return nil, fmt.Errorf("invalid salt length %d", saltLen)
+		}
 		buffer := make([]byte, saltLen+4+1+keyIDLen)
 		copy(buffer, opt.salt)
 		copy(buffer[saltLen:], uint32ToBytes(opt.recordSize))
