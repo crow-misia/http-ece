@@ -16,12 +16,11 @@ type KeyMappingFn func([]byte) []byte
 
 type options struct {
 	mode       mode             // Encrypt / Decrypt Mode
-	curve      ecdh.Curve       // Curve Algorithm
 	encoding   ContentEncoding  // Content Encoding
 	recordSize uint32           // Record Size
 	salt       []byte           // Encryption salt
 	key        []byte           // Encryption key data
-	pad        uint32           // Record padding size
+	padSize    int              // Record padding size
 	authSecret []byte           // Auth Secret
 	keyID      []byte           // key Identifier
 	keyLabel   []byte           // Key Label
@@ -47,85 +46,88 @@ func (o *options) initialize() error {
 
 type Option func(*options) error
 
-func WithEncoding(v ContentEncoding) Option {
+func WithEncoding(value ContentEncoding) Option {
 	return func(opts *options) error {
-		opts.encoding = v
+		opts.encoding = value
 		return nil
 	}
 }
 
-func WithSalt(v []byte) Option {
+func WithSalt(value []byte) Option {
 	return func(opts *options) error {
-		opts.salt = v
+		opts.salt = value
 		return nil
 	}
 }
 
-func WithPad(v uint32) Option {
+func WithPadSize(value int) Option {
 	return func(opts *options) error {
-		opts.pad = v
+		if value < 0 {
+			return fmt.Errorf("invalid padding size %d: must be non-negative", value)
+		}
+		opts.padSize = value
 		return nil
 	}
 }
 
-func WithPrivate(v []byte) Option {
+func WithPrivate(value []byte) Option {
 	return func(opts *options) (err error) {
-		opts.privateKey, err = curve.NewPrivateKey(v)
+		opts.privateKey, err = curve.NewPrivateKey(value)
 		return err
 	}
 }
 
-func WithDh(v []byte) Option {
+func WithDh(value []byte) Option {
 	return func(opts *options) error {
-		opts.dh = v
+		opts.dh = value
 		return nil
 	}
 }
 
-func WithAuthSecret(v []byte) Option {
+func WithAuthSecret(value []byte) Option {
 	return func(opts *options) error {
-		opts.authSecret = v
+		opts.authSecret = value
 		return nil
 	}
 }
 
-func WithRecordSize(v uint32) Option {
+func WithRecordSize(value int) Option {
 	return func(opts *options) error {
-		if v > recordSizeMax {
-			return fmt.Errorf("invalid record size: %d", v)
+		if value < 0 || value > recordSizeMax {
+			return fmt.Errorf("invalid record size %d: must be between 0 and %d", value, recordSizeMax)
 		}
-		opts.recordSize = v
+		opts.recordSize = uint32(value)
 		return nil
 	}
 }
 
-func WithKey(v []byte) Option {
+func WithKey(value []byte) Option {
 	return func(opts *options) error {
-		opts.key = v
+		opts.key = value
 		return nil
 	}
 }
 
-func WithKeyID(v []byte) Option {
+func WithKeyID(value []byte) Option {
 	return func(opts *options) error {
-		if len(v) > keyIDLenMax {
+		if len(value) > keyIDLenMax {
 			return ErrKeyIDTooLong
 		}
-		opts.keyID = v
+		opts.keyID = value
 		return nil
 	}
 }
 
-func WithKeyLabel(v []byte) Option {
+func WithKeyLabel(value []byte) Option {
 	return func(opts *options) error {
-		opts.keyLabel = v
+		opts.keyLabel = value
 		return nil
 	}
 }
 
-func WithKeyMap(v KeyMappingFn) Option {
+func WithKeyMap(value KeyMappingFn) Option {
 	return func(opts *options) error {
-		opts.keyMap = v
+		opts.keyMap = value
 		return nil
 	}
 }

@@ -38,16 +38,17 @@ func Decrypt(content []byte, opts ...Option) ([]byte, error) {
 
 	// Check Record Size
 	overhead := opt.encoding.overhead(gcm)
-	if opt.recordSize < overhead {
+	recordSize := int(opt.recordSize)
+	if recordSize < overhead {
 		return nil, fmt.Errorf("recordSize has to be greater than %d", overhead)
 	}
 
 	// Calculate chunkSize.
 	var (
-		baseRecordSize = opt.recordSize - overhead
-		start          = uint32(0)
+		baseRecordSize = recordSize - overhead
+		start          = 0
 		counter        = uint32(0)
-		contentLen     = uint32(len(content))
+		contentLen     = len(content)
 		recordNum      = (contentLen + baseRecordSize - 1) / baseRecordSize
 	)
 

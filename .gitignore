@@ -1,45 +1,88 @@
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+## OS
+# Windows
+# Windows thumbnail cache files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
 
-# Test binary, build with `go test -c`
-*.test
+# Dump file
+*.stackdump
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
+# Folder config file
+[Dd]esktop.ini
 
-### JetBrains template
-# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
-# Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
 
-# User-specific stuff
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/dictionaries
-.idea/**/shelf
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
 
-# Sensitive or high-churn files
-.idea/**/dataSources/
-.idea/**/dataSources.ids
-.idea/**/dataSources.local.xml
-.idea/**/sqlDataSources.xml
-.idea/**/dynamic.xml
-.idea/**/uiDesigner.xml
-.idea/**/dbnavigator.xml
+# Windows shortcuts
+*.lnk
 
-# Gradle
-.idea/**/gradle.xml
-.idea/**/libraries
+# macOS
+# General
+.DS_Store
+.localized
+__MACOSX/
+.AppleDouble
+.LSOverride
+Icon[]
 
-# CMake
-cmake-build-debug/
-cmake-build-release/
+# Resource forks
+._*
 
-# Mongo Explorer plugin
-.idea/**/mongoSettings.xml
+# Linux
+*~
+
+# temporary files which can be created if a process still has a handle open of a deleted file
+.fuse_hidden*
+
+# Metadata left by Dolphin file manager, which comes with KDE Plasma
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+# .nfs files are created when an open file is removed but is still being accessed
+.nfs*
+
+# Log files created by default by the nohup command
+nohup.out
+
+
+## mise
+.mise.*.local.toml
+.mise.local.toml
+mise.*.local.toml
+mise.local.toml
+.mise/*.local.toml
+mise/*.local.toml
+
+
+## lefthook
+/.lefthook-local.json
+/.lefthook-local.toml
+/.lefthook-local.yaml
+/.lefthook-local.yml
+/lefthook-local.json
+/lefthook-local.toml
+/lefthook-local.yaml
+/lefthook-local.yml
+/.config/lefthook-local.json
+/.config/lefthook-local.toml
+/.config/lefthook-local.yaml
+/.config/lefthook-local.yml
+/.lefthook-local/
+
+
+## JetBrains
+.idea/
 
 # File-based project format
 *.iws
@@ -53,23 +96,44 @@ out/
 # JIRA plugin
 atlassian-ide-plugin.xml
 
-# Cursive Clojure plugin
-.idea/replstate.xml
-
 # Crashlytics plugin (for Android Studio and IntelliJ)
 com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
-# Editor-based Rest Client
-.idea/httpRequests
 
-# Node.js
-node_modules/
+## Visual Studio Code
+.vscode/*
+*.code-workspace
 
-# Lefthook
-lefthook-local.*
+# Built Visual Studio Code Extensions
+*.vsix
 
-# mise
-mise.local.toml
+
+## Go
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Code coverage profiles and other test artifacts
+*.out
+coverage.*
+*.coverprofile
+profile.cov
+
+# Dependency directories (remove the comment below to include it)
+vendor/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# env file
+.env

@@ -14,6 +14,6 @@ import (
 )
 
 func TestContentEncoding_Padding(t *testing.T) {
-	assert.Equal(t, uint32(2), AESGCM.Padding())
-	assert.Equal(t, uint32(1), AES128GCM.Padding())
+	assert.Equal(t, 2, AESGCM.Padding())
+	assert.Equal(t, 1, AES128GCM.Padding())
 }
