@@ -8,6 +8,7 @@
 package httpece
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/ecdh"
@@ -176,14 +177,7 @@ func extractSecret(opt *options) ([]byte, error) {
 }
 
 func buildInfo(base []byte, context []byte) string {
-	baseLen := len(base)
-	contextLen := len(context)
-	result := make([]byte, 0, baseLen+contextLen)
-	result = append(result, base...)
-	if contextLen > 0 {
-		result = append(result, context...)
-	}
-	return string(result)
+	return string(bytes.Join([][]byte{base, context}, nil))
 }
 
 func extractDH(opt *options) (secret []byte, context []byte, err error) {

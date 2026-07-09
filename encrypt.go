@@ -9,6 +9,7 @@ package httpece
 
 import (
 	"crypto/cipher"
+	"encoding/binary"
 	"fmt"
 	"math"
 )
@@ -19,7 +20,8 @@ func Encrypt(plaintext []byte, opts ...Option) ([]byte, error) {
 	var err error
 
 	// Options
-	if opt, err = parseOptions(encrypt, opts); err != nil {
+	opt, err = parseOptions(encrypt, opts)
+	if err != nil {
 		return nil, err
 	}
 
@@ -103,7 +105,7 @@ func encryptRecord(opt *options, gcm cipher.AEAD, nonce, plaintext []byte, recor
 	if err != nil {
 		return nil, err
 	}
-	return gcm.Seal(nil, nonce, plaintextWithPadding, nil), nil
+	return gcm.Seal(plaintextWithPadding[:0], nonce, plaintextWithPadding, nil), nil
 }
 
 func writeHeader(opt *options, results [][]byte) ([][]byte, error) {
@@ -119,7 +121,7 @@ func writeHeader(opt *options, results [][]byte) ([][]byte, error) {
 		}
 		buffer := make([]byte, saltLen+4+1+keyIDLen)
 		copy(buffer, opt.salt)
-		copy(buffer[saltLen:], uint32ToBytes(opt.recordSize))
+		binary.BigEndian.PutUint32(buffer[saltLen:], opt.recordSize)
 		buffer[saltLen+4] = uint8(keyIDLen)
 		copy(buffer[saltLen+5:], opt.keyID)
 		return append(results, buffer), nil

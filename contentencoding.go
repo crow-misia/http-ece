@@ -44,13 +44,11 @@ func (i ContentEncoding) overhead(gcm cipher.AEAD) int {
 }
 
 func (i ContentEncoding) calculateRecordPadSize(pad, baseRecordSize int) int {
-	padSize := i.Padding()
-
 	// Pad so that at least one data byte is in a block.
-	recordPad := min(baseRecordSize-1, pad)
+	recordPad := min(pad, baseRecordSize-1)
 
 	if i != AES128GCM {
-		recordPad = min((1<<(padSize*8))-1, recordPad)
+		recordPad = min(recordPad, (1<<(i.Padding()*8))-1)
 	}
 	if pad > 0 && recordPad == 0 {
 		recordPad++ // Deal with perverse case of rs=overhead+1 with padding.
@@ -63,14 +61,11 @@ func (i ContentEncoding) calculateCipherBlockEnd(gcm cipher.AEAD, start, content
 	tagSize := gcm.Overhead()
 	if i != AES128GCM {
 		blockSize += tagSize
+		if start+blockSize == contentLen {
+			return 0, ErrTruncated
+		}
 	}
-	end := start + blockSize
-
-	if i != AES128GCM && end == contentLen {
-		return 0, ErrTruncated
-	}
-
-	end = min(end, contentLen)
+	end := min(start+blockSize, contentLen)
 	if end-start <= tagSize {
 		return 0, ErrTruncated
 	}
@@ -103,8 +98,8 @@ func (i ContentEncoding) appendPadding(plaintext []byte, pad int, last bool) ([]
 func (i ContentEncoding) unpad(plaintext []byte, last bool) ([]byte, error) {
 	switch i {
 	case AES128GCM:
-		for i := len(plaintext) - 1; i >= 0; i-- {
-			c := plaintext[i]
+		for j := len(plaintext) - 1; j >= 0; j-- {
+			c := plaintext[j]
 			switch {
 			case c == 0:
 				continue
@@ -113,7 +108,7 @@ func (i ContentEncoding) unpad(plaintext []byte, last bool) ([]byte, error) {
 			case !last && c != 1:
 				return nil, ErrInvalidPaddingNonLast
 			default:
-				return plaintext[:i], nil
+				return plaintext[:j], nil
 			}
 		}
 
@@ -136,14 +131,13 @@ func (i ContentEncoding) unpad(plaintext []byte, last bool) ([]byte, error) {
 }
 
 // isLastBlock returns true when last block
-func (i ContentEncoding) isLastBlock(pad, contentLen, blockEnd int) bool {
-	var last bool
-	switch i {
-	case AES128GCM:
-		last = blockEnd >= contentLen
-	default:
-		// The > here ensures that we write out a padding-only block at the end of a buffer.
-		last = blockEnd > contentLen
+func (i ContentEncoding) isLastBlock(pad, plaintextLen, blockEnd int) bool {
+	if pad != 0 {
+		return false
 	}
-	return last && pad == 0
+	if i == AES128GCM {
+		return blockEnd >= plaintextLen
+	}
+	// The > here ensures that we write out a padding-only block at the end of a buffer.
+	return blockEnd > plaintextLen
 }
