@@ -35,6 +35,38 @@ func TestEncryptWithAESGCM(t *testing.T) {
 	assert.Equal(t, "vOjpVgZE4IYn/uEJKk3DzZ4X+Qr1dgSSUkuIzQE=", e(content))
 }
 
+func TestEncryptDecrypt_Errors(t *testing.T) {
+	// Encrypt error: record size too small
+	_, err := Encrypt([]byte("test"), WithRecordSize(1))
+	assert.Error(t, err)
+
+	// Decrypt error: record size too small
+	_, err = Decrypt([]byte("test"), WithRecordSize(1))
+	assert.Error(t, err)
+
+	// Encrypt error: invalid salt length
+	_, err = Encrypt([]byte("test"), WithSalt(make([]byte, 5)))
+	assert.Error(t, err)
+}
+
+func TestEncrypt_HeaderErrors(t *testing.T) {
+	// writeHeader with too long keyID
+	opt := &options{
+		encoding: AES128GCM,
+		keyID:    make([]byte, 300),
+	}
+	_, err := writeHeader(opt, nil)
+	assert.Error(t, err)
+
+	// writeHeader with too long salt
+	opt = &options{
+		encoding: AES128GCM,
+		salt:     make([]byte, 300),
+	}
+	_, err = writeHeader(opt, nil)
+	assert.Error(t, err)
+}
+
 func TestEncryptWithAESGCM4093Byte(t *testing.T) {
 	authSecret := d(t, "9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d(t, "mRGYnIzSJGeZnJ19lgQcfw==")

@@ -32,6 +32,27 @@ func TestDecryptWithAESGCM(t *testing.T) {
 	assert.Equal(t, "hello world", string(plaintext))
 }
 
+func TestDecryptWithAESGCM_Truncated(t *testing.T) {
+	authSecret := d(t, "9HcXsQe3xLMG/w2HsYKrOA==")
+	salt := d(t, "mRGYnIzSJGeZnJ19lgQcfw==")
+	privateKey := d(t, "yfSYB+/vCEoWklHCG7F99cQ1vRwemFYn87jZc8PHBwU=")
+	senderPublicKey := d(t, "BGJXZ4zDA04RfSgTufdauZXcNYbe3oF/yEri5ETSuZLDx70gYi7w2ytak8U82H01P1HYnIvr2fEeX7NZpeHdnhM=")
+
+	// BaseRecordSize for AESGCM (rs=4096) is 4096 - 2 = 4094.
+	// Total block size including tag is 4096 + 16 = 4112.
+	content := make([]byte, 4112)
+	plaintext, err := Decrypt(content,
+		WithEncoding(AESGCM),
+		WithSalt(salt),
+		WithAuthSecret(authSecret),
+		WithPrivate(privateKey),
+		WithDh(senderPublicKey),
+	)
+
+	assert.Equal(t, ErrTruncated, err)
+	assert.Nil(t, plaintext)
+}
+
 func TestDecryptWithAESGCM_2record(t *testing.T) {
 	authSecret := d(t, "9HcXsQe3xLMG/w2HsYKrOA==")
 	salt := d(t, "mRGYnIzSJGeZnJ19lgQcfw==")
