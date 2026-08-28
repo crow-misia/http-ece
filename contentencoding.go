@@ -12,6 +12,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"slices"
 )
 
 // ContentEncoding is crypto data encoding
@@ -98,8 +99,8 @@ func (i ContentEncoding) appendPadding(plaintext []byte, pad int, last bool) ([]
 func (i ContentEncoding) unpad(plaintext []byte, last bool) ([]byte, error) {
 	switch i {
 	case AES128GCM:
-		for j := len(plaintext) - 1; j >= 0; j-- {
-			c := plaintext[j]
+		for j, c := range slices.Backward(plaintext) {
+
 			switch {
 			case c == 0:
 				continue
