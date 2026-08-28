@@ -8,7 +8,7 @@ a simple implementation of HTTP Encrypted Content-Encoding scheme([RFC 8188](htt
 
 # Requirements
 
-Go 1.25 and beyond.
+Go 1.26 and beyond.
 
 # Install
 

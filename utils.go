@@ -65,7 +65,7 @@ func uint16ToBytes(i uint16) []byte {
 func generateNonce(baseNonce []byte, counter uint32) []byte {
 	x := make([]byte, nonceLen)
 	binary.BigEndian.PutUint32(x[8:], counter)
-	for i := 0; i < nonceLen; i++ {
+	for i := range nonceLen {
 		x[i] ^= baseNonce[i]
 	}
 	return x
